@@ -11,11 +11,33 @@ import '../styles/global.css';
 <html lang="en" class="scroll-smooth">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="DOES YOUR YARD NEED A GRASSWHOOPIN? No-BS lawn service out of Ardmore, TN." />
+		<meta name="description" content="No-BS lawn service out of Ardmore, TN. We show up, we do the work, we leave." />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		<title>{title}</title>
+
+		<meta property="og:title" content="Grasswhoopin' | Lawn Service" />
+		<meta property="og:description" content="No-BS lawn service out of Ardmore, TN. We show up, we do the work, we leave." />
+		<meta property="og:type" content="website" />
+		<meta name="twitter:card" content="summary" />
+
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "LocalBusiness",
+			"name": "Grasswhoopin'",
+			"description": "Lawn care service serving the Ardmore, TN and surrounding Alabama/Tennessee border area.",
+			"telephone": "555-9467",
+			"address": {
+				"@type": "PostalAddress",
+				"addressLocality": "Ardmore",
+				"addressRegion": "TN",
+				"addressCountry": "US"
+			},
+			"areaServed": "Ardmore TN, Athens AL, Elkmont AL, Taft TN"
+		}
+		</script>
 	</head>
 	<body class="bg-army text-gray-100 antialiased selection:bg-deere selection:text-black">
 		<slot />
