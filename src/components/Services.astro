@@ -1,0 +1,22 @@
+---
+const services = [
+  { name: "The Basic Beatdown", desc: "Weekly mowing that puts your grass in its place." },
+  { name: "Edge-of-Death Special", desc: "String trimming so sharp it'll make your sidewalk bleed." },
+  { name: "Weed Whacker Waterboarding", desc: "We don't stop until the dandelions talk." },
+  { name: "Fertilizer Interrogation", desc: "Forcing your soil to produce or else." },
+  { name: "Full Yard Court-Martial", desc: "Complete overhaul for the most rebellious acreage." }
+];
+---
+<section id="services" class="py-20 bg-dirt border-y-8 border-camo">
+  <div class="container mx-auto px-6">
+    <h2 class="text-5xl md:text-7xl font-black mb-12 text-deere uppercase text-center italic">Available Punishments</h2>
+    <div class="grid md:grid-cols-3 gap-8">
+      {services.map(s => (
+        <div class="bg-army p-8 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <h3 class="text-2xl font-black text-screaming mb-4 uppercase">{s.name}</h3>
+          <p class="text-lg font-bold italic">{s.desc}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
