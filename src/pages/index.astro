@@ -1,11 +1,19 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="GRASSWHOOPIN' | We Whoop 'Em Into Submission">
+	<main>
+		<section class="h-screen flex flex-col items-center justify-center text-center p-6 border-8 border-camo">
+			<h1 class="text-6xl md:text-9xl font-black mb-4 text-deere leading-none uppercase">
+				DOES YOUR YARD NEED A <span class="text-screaming">GRASSWHOOPIN'?</span>
+			</h1>
+			<p class="text-2xl md:text-4xl mb-8 font-bold italic text-white uppercase tracking-tighter">
+				We don't mow lawns. We whoop 'em into submission.
+			</p>
+			<button class="bg-deere text-black text-2xl px-12 py-6 font-black uppercase hover:bg-screaming hover:scale-105 transition-all border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+				Schedule the Pain
+			</button>
+		</section>
+	</main>
 </Layout>
