@@ -30,9 +30,13 @@
     <!-- Row 3 — tagline + CTA, left-aligned below G -->
     <div class="bottom-cta">
       <p class="tagline">We'll handle it.</p>
-      <a href="sms:2569290532?body=Hey%20I%20need%20a%20grasswhoopin%21" class="cta-btn">
-        TEXT US NOW <span class="arrow">→</span>
-      </a>
+      <p class="tagline" style="animation-delay: 420ms;">Best way to reach us?</p>
+      <div class="cta-row">
+        <a href="sms:2569290532?body=Hey%20I%20need%20a%20grasswhoopin%21" class="cta-btn">
+          TEXT US NOW <span class="arrow">→</span>
+        </a>
+        <span class="cta-aside">since we're probably out whoopin somebody's grass right now.....</span>
+      </div>
     </div>
 
   </div>
@@ -236,6 +240,27 @@
   }
   .cta-btn:hover .arrow {
     transform: translateX(5px);
+  }
+
+  /* =====================
+     CTA ROW — button + aside on one line
+  ===================== */
+  .cta-row {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: nowrap;
+  }
+  .cta-aside {
+    font-style: italic;
+    font-weight: 600;
+    color: #f5f0e8;
+    font-size: clamp(0.96rem, 1.32vw, 1.14rem);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    opacity: 0;
+    animation: fadeUp 0.4s ease forwards;
+    animation-delay: 520ms;
   }
 
   /* =====================
