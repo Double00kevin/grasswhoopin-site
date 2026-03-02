@@ -1,20 +1,337 @@
 ---
-import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.astro';
-import Services from '../components/Services.astro';
-import Testimonials from '../components/Testimonials.astro';
-import About from '../components/About.astro';
-import Contact from '../components/Contact.astro';
-import Footer from '../components/Footer.astro';
 ---
 
-<Layout title="Grasswhoopin' | Lawn Care — Tennessee-Alabama Border">
-  <main>
-    <Hero />
-    <Services />
-    <Testimonials />
-    <About />
-    <Contact />
-    <Footer />
-  </main>
-</Layout>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Does your yard need a Grasswhoopin'? No-BS lawn care serving the Tennessee-Alabama border area. Text us.">
+  <title>Grasswhoopin' | Lawn Care — Tennessee-Alabama Border</title>
+  <meta property="og:title" content="Grasswhoopin' | Lawn Care">
+  <meta property="og:description" content="Does your yard need a Grasswhoopin'? No-BS lawn care serving the Tennessee-Alabama border area. Text us.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://grasswhoopin.com">
+
+  <!-- Barlow + Barlow Condensed — covers hero (900) and all page sections -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;1,400&family=Barlow+Condensed:wght@400;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Barlow', system-ui, sans-serif;
+      font-weight: 400;
+      background: #1a1a18;
+      color: #1a1a18;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* =============================================
+       DESIGN TOKENS
+    ============================================= */
+    :root {
+      --bg-light:    #f5f0e8;
+      --bg-dark:     #1a1a18;
+      --green-bright:#7fe832;
+      --yellow:      #f2c200;
+      --army:        #4a5e3a;
+      --text-dark:   #1a1a18;
+      --text-light:  #f5f0e8;
+    }
+
+    /* =============================================
+       SHARED SECTION LAYOUT
+    ============================================= */
+    .pg-section {
+      padding: 5rem 1.5rem;
+    }
+
+    .pg-container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .pg-heading {
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: clamp(3rem, 5vw, 5rem);
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    /* 3px accent bar below heading — set background per section */
+    .pg-accent {
+      width: 56px;
+      height: 3px;
+      margin-bottom: 3rem;
+    }
+
+    /* =============================================
+       SECTION 1 — WHAT WE DO
+    ============================================= */
+    .s-services { background: var(--bg-light); }
+    .s-services .pg-heading { color: var(--text-dark); }
+    .s-services .pg-accent  { background: var(--green-bright); }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.75rem 5rem;
+    }
+
+    .service-block {
+      border-left: 3px solid var(--army);
+      padding-left: 1.25rem;
+    }
+
+    .service-name {
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--army);
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+
+    .service-desc {
+      font-size: 1.1rem;
+      color: var(--text-dark);
+      line-height: 1.55;
+    }
+
+    /* =============================================
+       SECTION 2 — NEIGHBORS SAY
+    ============================================= */
+    .s-testimonials { background: var(--bg-dark); }
+    .s-testimonials .pg-heading { color: var(--text-light); }
+    .s-testimonials .pg-accent  { background: var(--yellow); }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .testimonial-block {
+      border-top: 1px solid var(--army);
+      padding: 2rem 3rem 2rem 0;
+    }
+
+    .testimonial-block:nth-child(even) {
+      padding-left: 3rem;
+      padding-right: 0;
+    }
+
+    .testimonial-quote {
+      font-style: italic;
+      font-size: 1.15rem;
+      color: var(--text-light);
+      line-height: 1.65;
+      margin-bottom: 0.85rem;
+    }
+
+    .testimonial-attr {
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--yellow);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* =============================================
+       SECTION 3 — WHERE WE'RE LOCATED
+    ============================================= */
+    .s-location { background: var(--bg-light); }
+    .s-location .pg-heading { color: var(--text-dark); }
+    .s-location .pg-accent  { background: var(--green-bright); }
+
+    .location-body {
+      font-size: 1.15rem;
+      color: var(--text-dark);
+      line-height: 1.7;
+      max-width: 640px;
+    }
+
+    /* =============================================
+       SECTION 4 — CONTACT
+    ============================================= */
+    .s-contact { background: var(--bg-dark); }
+
+    .contact-heading {
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: clamp(2rem, 4vw, 4rem);
+      text-transform: uppercase;
+      color: var(--yellow);
+      line-height: 1;
+      margin-bottom: 1.25rem;
+    }
+
+    .contact-sub {
+      font-size: 1.1rem;
+      color: var(--text-light);
+      max-width: 520px;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .contact-phone {
+      display: block;
+      width: fit-content;
+      font-family: 'Barlow Condensed', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: 2.5rem;
+      color: var(--green-bright);
+      text-decoration: none;
+      margin-bottom: 1.5rem;
+      transition: color 0.2s ease;
+    }
+
+    .contact-phone:hover { color: var(--yellow); }
+
+    .contact-tagline {
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--text-light);
+    }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    .site-footer {
+      background: var(--bg-dark);
+      border-top: 1px solid var(--army);
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 0.85rem;
+      color: var(--army);
+    }
+
+    /* =============================================
+       MOBILE
+    ============================================= */
+    @media (max-width: 767px) {
+      .pg-section { padding: 3.5rem 1.25rem; }
+
+      .services-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .testimonials-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .testimonial-block,
+      .testimonial-block:nth-child(even) {
+        padding: 1.5rem 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <Hero />
+
+  <!-- ==========================================
+       WHAT WE DO
+  =========================================== -->
+  <section class="pg-section s-services">
+    <div class="pg-container">
+      <h2 class="pg-heading">WHAT WE DO</h2>
+      <div class="pg-accent"></div>
+      <div class="services-grid">
+        <div class="service-block">
+          <div class="service-name">Weekly Mowing</div>
+          <p class="service-desc">Show up, whoop some grass, done. Same time every week, no reminders needed.</p>
+        </div>
+        <div class="service-block">
+          <div class="service-name">Edging &amp; Trimming</div>
+          <p class="service-desc">The mower can't get everything. We can.</p>
+        </div>
+        <div class="service-block">
+          <div class="service-name">Weed Control</div>
+          <p class="service-desc">We know what's supposed to be there. Everything else goes.</p>
+        </div>
+        <div class="service-block">
+          <div class="service-name">Full Yard Overhaul</div>
+          <p class="service-desc">If it got away from you, we can get it back. No judgment.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       NEIGHBORS SAY
+  =========================================== -->
+  <section class="pg-section s-testimonials">
+    <div class="pg-container">
+      <h2 class="pg-heading">NEIGHBORS SAY</h2>
+      <div class="pg-accent"></div>
+      <div class="testimonials-grid">
+        <div class="testimonial-block">
+          <p class="testimonial-quote">"He showed up when he said he would. Didn't talk a lot. Yard looks good. That's really all I needed."</p>
+          <p class="testimonial-attr">Billy Ray — Ardmore TN</p>
+        </div>
+        <div class="testimonial-block">
+          <p class="testimonial-quote">"I was skeptical because the name is ridiculous. Yard's been perfect for three months. I'll give him that."</p>
+          <p class="testimonial-attr">Miss Darlene — Athens AL</p>
+        </div>
+        <div class="testimonial-block">
+          <p class="testimonial-quote">"He took care of my mama's yard while she was in the hospital. Didn't make a big deal about it. That says something."</p>
+          <p class="testimonial-attr">James Earl — Elkmont AL</p>
+        </div>
+        <div class="testimonial-block">
+          <p class="testimonial-quote">"Prices are fair. Shows up every week. My neighbor finally stopped giving me looks."</p>
+          <p class="testimonial-attr">Rhonda — Toney AL</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       WHERE WE'RE LOCATED
+  =========================================== -->
+  <section class="pg-section s-location">
+    <div class="pg-container">
+      <h2 class="pg-heading">WHERE WE'RE LOCATED</h2>
+      <div class="pg-accent"></div>
+      <p class="location-body">Headquartered at the exact spot where Alabama and Tennessee can't agree on whose problem we are. We serve the whole confused area.</p>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       CONTACT
+  =========================================== -->
+  <section id="contact" class="pg-section s-contact">
+    <div class="pg-container">
+      <h2 class="contact-heading">NEED A GRASSWHOOPIN'?</h2>
+      <p class="contact-sub">Best way to reach us? Text. We're probably out whooping somebody's grass right now.</p>
+      <a href="tel:2569290532" class="contact-phone">256-929-0532</a>
+      <p class="contact-tagline">We'll holler back.</p>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       FOOTER
+  =========================================== -->
+  <footer class="site-footer">
+    <p class="footer-text">© 2026 Grasswhoopin' LLC — All rights reserved, especially the right to whoop your grass.</p>
+  </footer>
+
+</body>
+</html>
