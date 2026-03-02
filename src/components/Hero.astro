@@ -79,7 +79,8 @@
     padding: 5rem 3rem;
     display: grid;
     grid-template-columns: 45fr 55fr;
-    grid-template-rows: auto auto auto;
+    /* Row 1 height locked to word stack so mascot can overflow upward */
+    grid-template-rows: calc(3.52 * clamp(4rem, 8vw, 9rem)) auto auto;
     row-gap: 0;
     column-gap: 0;
     align-content: center;
@@ -113,17 +114,18 @@
 
   /* =====================
      ROW 1 COL 2 — mascot
-     Height = 4 lines × line-height: 3.52 × font-size
-     Aligns top with DOES, bottom with NEED A
+     align-self: end  → mascot bottom pins to NEED A bottom
+     align-items: flex-end → mascot bottom pins to right-col bottom
+     Mascot is taller than the row → overflows upward above DOES
   ===================== */
   .right-col {
     grid-row: 1;
     grid-column: 2;
     position: relative;
     display: flex;
-    align-items: flex-start;
+    align-items: flex-end;
     justify-content: flex-start;
-    align-self: start;
+    align-self: end;
   }
 
   .mascot-glow {
@@ -137,8 +139,8 @@
   .mascot-img {
     position: relative;
     z-index: 1;
-    /* Matches 4 × 0.88 = 3.52 line-heights of the word stack above */
-    height: calc(3.52 * clamp(4rem, 8vw, 9rem));
+    /* 5.5 × line-height — bottom pins to NEED A, top overflows above DOES */
+    height: calc(5.5 * clamp(4rem, 8vw, 9rem));
     width: auto;
     max-width: 100%;
     display: block;
@@ -263,8 +265,8 @@
       min-height: 100svh;
     }
 
-    .headline-stack { grid-row: 1; grid-column: 1; }
-    .right-col      { grid-row: 2; grid-column: 1; justify-content: center; }
+    .headline-stack { grid-row: 1; grid-column: 1; align-items: center; }
+    .right-col      { grid-row: 2; grid-column: 1; justify-content: center; align-self: start; align-items: flex-start; }
     .big-line-row   { grid-row: 3; grid-column: 1; }
     .bottom-cta     { grid-row: 4; grid-column: 1; align-items: center; padding-top: 0; text-align: center; }
 
@@ -283,7 +285,7 @@
     /* Mobile: (100vw - 2.5rem) / 7.5 ≈ 13.33vw - 0.33rem */
     .big-line {
       font-size: clamp(1.5rem, calc(13.33vw - 0.33rem), 6.5rem);
-      text-align: left;
+      text-align: center;
     }
   }
 </style>
