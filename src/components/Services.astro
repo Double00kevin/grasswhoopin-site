@@ -1,0 +1,34 @@
+---
+const services = [
+  {
+    name: "WEEKLY MOWING",
+    desc: "Show up, whoop some grass, done. Same time every week, no reminders needed."
+  },
+  {
+    name: "EDGING & TRIMMING",
+    desc: "The mower can't get everything. We can."
+  },
+  {
+    name: "WEED CONTROL",
+    desc: "We know what's supposed to be there. Everything else goes."
+  },
+  {
+    name: "FULL YARD OVERHAUL",
+    desc: "If it got away from you, we can get it back. No judgment."
+  }
+];
+---
+
+<section class="py-20 bg-dirt">
+  <div class="container mx-auto px-6">
+    <h2 class="text-6xl md:text-8xl font-black uppercase italic text-deere text-center mb-14">WHAT WE DO</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      {services.map(s => (
+        <div class="bg-army border-t-4 border-screaming p-8 shadow-lg hover:-translate-y-1 transition-transform duration-200">
+          <h3 class="text-xl font-black uppercase text-screaming mb-3">{s.name}</h3>
+          <p class="text-gray-300 italic text-lg">{s.desc}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

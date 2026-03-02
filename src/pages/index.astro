@@ -1,43 +1,20 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/Hero.astro';
+import Services from '../components/Services.astro';
+import Testimonials from '../components/Testimonials.astro';
+import About from '../components/About.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
 ---
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Grasswhoopin' — Coming Soon</title>
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body {
-        background: #1e3a2f;
-        color: #f3f4f6;
-        font-family: system-ui, sans-serif;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 2rem;
-      }
-      h1 {
-        font-size: clamp(2.5rem, 8vw, 5rem);
-        font-weight: 900;
-        text-transform: uppercase;
-        color: #ffde00;
-        letter-spacing: -0.02em;
-        margin-bottom: 1rem;
-      }
-      p {
-        font-size: clamp(1rem, 3vw, 1.4rem);
-        font-weight: 600;
-        color: #d1fae5;
-      }
-    </style>
-  </head>
-  <body>
-    <div>
-      <h1>Grasswhoopin'</h1>
-      <p>Something's coming. Check back soon.</p>
-    </div>
-  </body>
-</html>
+
+<Layout title="Grasswhoopin' | Lawn Care — Tennessee-Alabama Border">
+  <main>
+    <Hero />
+    <Services />
+    <Testimonials />
+    <About />
+    <Contact />
+    <Footer />
+  </main>
+</Layout>

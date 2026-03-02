@@ -1,3 +1,44 @@
 ---
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+import '../styles/global.css';
 ---
-<slot />
+
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="Does your yard need a Grasswhoopin'? No-BS lawn care serving the Tennessee-Alabama border area. Text us." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+
+    <meta property="og:title" content="Grasswhoopin' | Lawn Care" />
+    <meta property="og:description" content="Does your yard need a Grasswhoopin'? No-BS lawn care serving the Tennessee-Alabama border area. Text us." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://grasswhoopin.com" />
+    <meta name="twitter:card" content="summary" />
+
+    <script is:inline type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Grasswhoopin' LLC",
+      "telephone": "256-929-0532",
+      "address": {
+        "@type": "PostalAddress",
+        "addressRegion": "TN/AL",
+        "addressCountry": "US"
+      },
+      "url": "https://grasswhoopin.com",
+      "areaServed": "Ardmore TN, Athens AL, Elkmont AL, Taft TN"
+    }
+    </script>
+  </head>
+  <body class="bg-army text-gray-100 antialiased">
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,38 @@
+---
+const testimonials = [
+  {
+    quote: "He showed up when he said he would. Didn't talk a lot. Yard looks good. That's really all I needed.",
+    name: "Billy Ray",
+    location: "Ardmore TN"
+  },
+  {
+    quote: "I was skeptical because the name is ridiculous. Yard's been perfect for three months. I'll give him that.",
+    name: "Miss Darlene",
+    location: "Athens AL"
+  },
+  {
+    quote: "He took care of my mama's yard while she was in the hospital. Didn't make a big deal about it. That says something.",
+    name: "James Earl",
+    location: "Elkmont AL"
+  },
+  {
+    quote: "Prices are fair. Shows up every week. My neighbor finally stopped giving me looks.",
+    name: "Rhonda",
+    location: "Taft TN"
+  }
+];
+---
+
+<section class="py-20 bg-olive">
+  <div class="container mx-auto px-6">
+    <h2 class="text-6xl md:text-8xl font-black uppercase italic text-deere text-center mb-14">NEIGHBORS SAY</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      {testimonials.map(t => (
+        <div class="bg-army border-l-4 border-screaming p-8 shadow-lg">
+          <p class="text-gray-300 italic text-lg mb-5">"{t.quote}"</p>
+          <p class="text-screaming text-sm font-bold uppercase tracking-widest">{t.name} &mdash; {t.location}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

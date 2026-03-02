@@ -1,0 +1,161 @@
+---
+---
+
+<section class="hero min-h-screen flex flex-col items-center justify-center text-center px-6 py-16 relative overflow-hidden">
+
+  <!-- Camo dot texture overlay -->
+  <div class="camo-overlay absolute inset-0 pointer-events-none" aria-hidden="true"></div>
+
+  <!-- Mascot SVG -->
+  <div class="relative z-10 mb-10">
+    <svg
+      viewBox="0 0 300 300"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      class="w-60 h-60 md:w-72 md:h-72 mx-auto"
+      aria-label="Grasswhoopin' mascot: an angry stick figure aggressively pushing a reel mower"
+      role="img"
+    >
+      <!-- Ground line -->
+      <line x1="30" y1="274" x2="270" y2="274" stroke="#4b5320" stroke-width="2" opacity="0.5"/>
+
+      <!-- LEFT WHEEL (front of mower) -->
+      <circle cx="72" cy="252" r="22" fill="#111" stroke="#1a1a1a" stroke-width="2.5"/>
+      <line x1="72" y1="230" x2="72" y2="274" stroke="#FACC15" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="50" y1="252" x2="94" y2="252" stroke="#FACC15" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="57" y1="237" x2="87" y2="267" stroke="#FACC15" stroke-width="2" stroke-linecap="round"/>
+      <line x1="87" y1="237" x2="57" y2="267" stroke="#FACC15" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="72" cy="252" r="22" fill="none" stroke="#333" stroke-width="3"/>
+      <circle cx="72" cy="252" r="5" fill="#FACC15"/>
+
+      <!-- RIGHT WHEEL (back, near figure) -->
+      <circle cx="163" cy="252" r="22" fill="#111" stroke="#1a1a1a" stroke-width="2.5"/>
+      <line x1="163" y1="230" x2="163" y2="274" stroke="#FACC15" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="141" y1="252" x2="185" y2="252" stroke="#FACC15" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="148" y1="237" x2="178" y2="267" stroke="#FACC15" stroke-width="2" stroke-linecap="round"/>
+      <line x1="178" y1="237" x2="148" y2="267" stroke="#FACC15" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="163" cy="252" r="22" fill="none" stroke="#333" stroke-width="3"/>
+      <circle cx="163" cy="252" r="5" fill="#FACC15"/>
+
+      <!-- REEL CYLINDER (between wheels at ground level) -->
+      <ellipse cx="118" cy="258" rx="17" ry="9" fill="#FACC15" stroke="#111" stroke-width="2"/>
+      <!-- Spiral lines on reel -->
+      <path d="M 103,258 Q 110,250 118,258 Q 126,266 133,258" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M 103,258 Q 110,266 118,258 Q 126,250 133,258" fill="none" stroke="#111" stroke-width="1.5" stroke-linecap="round"/>
+
+      <!-- HANDLE (single curve from rear wheel up to figure's hands) -->
+      <path d="M 160,234 C 180,212 202,200 220,188" fill="none" stroke="#555" stroke-width="5.5" stroke-linecap="round"/>
+
+      <!-- FIGURE LIMBS (drawn before head so head sits on top) -->
+
+      <!-- Body: shoulder (232,108) to hip (207,156) — 45° forward lean -->
+      <line x1="232" y1="108" x2="207" y2="156" stroke="#1a1a1a" stroke-width="6.5" stroke-linecap="round"/>
+
+      <!-- Arms: locked out reaching down to handle -->
+      <line x1="228" y1="122" x2="220" y2="188" stroke="#1a1a1a" stroke-width="5.5" stroke-linecap="round"/>
+
+      <!-- Back leg -->
+      <line x1="207" y1="156" x2="228" y2="244" stroke="#1a1a1a" stroke-width="5.5" stroke-linecap="round"/>
+      <line x1="228" y1="244" x2="247" y2="250" stroke="#1a1a1a" stroke-width="5" stroke-linecap="round"/>
+
+      <!-- Front leg -->
+      <line x1="207" y1="156" x2="188" y2="242" stroke="#1a1a1a" stroke-width="5.5" stroke-linecap="round"/>
+      <line x1="188" y1="242" x2="173" y2="249" stroke="#1a1a1a" stroke-width="5" stroke-linecap="round"/>
+
+      <!-- HEAD -->
+      <circle cx="240" cy="75" r="27" fill="#fde68a" stroke="#1a1a1a" stroke-width="3.5"/>
+
+      <!-- CAMO HAT -->
+      <!-- Crown -->
+      <path d="M 216,54 Q 218,37 240,31 Q 262,37 264,54 Z" fill="#4b5320" stroke="#1a1a1a" stroke-width="2.5"/>
+      <!-- Brim -->
+      <rect x="210" y="53" width="62" height="8" rx="2" fill="#3a4218" stroke="#1a1a1a" stroke-width="2"/>
+      <!-- Camo spots -->
+      <ellipse cx="226" cy="43" rx="5" ry="3.5" fill="#2a3312" opacity="0.9"/>
+      <ellipse cx="241" cy="38" rx="4" ry="3" fill="#2a3312" opacity="0.9"/>
+      <ellipse cx="255" cy="44" rx="5" ry="3.5" fill="#2a3312" opacity="0.9"/>
+      <ellipse cx="234" cy="50" rx="3" ry="2" fill="#5a6b22" opacity="0.8"/>
+      <ellipse cx="249" cy="49" rx="3.5" ry="2" fill="#2a3312" opacity="0.85"/>
+
+      <!-- FACE -->
+      <!-- Angry furrowed brows -->
+      <line x1="223" y1="68" x2="235" y2="63" stroke="#1a1a1a" stroke-width="4.5" stroke-linecap="round"/>
+      <line x1="257" y1="63" x2="245" y2="68" stroke="#1a1a1a" stroke-width="4.5" stroke-linecap="round"/>
+
+      <!-- Squinting eyes -->
+      <ellipse cx="231" cy="76" rx="4" ry="4" fill="#1a1a1a"/>
+      <ellipse cx="249" cy="76" rx="4" ry="4" fill="#1a1a1a"/>
+      <!-- Squint lines (upper lid crease) -->
+      <line x1="227" y1="72" x2="235" y2="72" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="245" y1="72" x2="253" y2="72" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- Grimaced mouth with teeth -->
+      <path d="M 224,89 Q 240,101 256,89" fill="white" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round"/>
+      <!-- Teeth dividers -->
+      <line x1="229" y1="90" x2="229" y2="97" stroke="#1a1a1a" stroke-width="1.5"/>
+      <line x1="235" y1="91" x2="235" y2="99" stroke="#1a1a1a" stroke-width="1.5"/>
+      <line x1="240" y1="92" x2="240" y2="99" stroke="#1a1a1a" stroke-width="1.5"/>
+      <line x1="246" y1="91" x2="246" y2="98" stroke="#1a1a1a" stroke-width="1.5"/>
+      <line x1="251" y1="90" x2="251" y2="96" stroke="#1a1a1a" stroke-width="1.5"/>
+
+      <!-- Sweat drops -->
+      <path d="M 270,58 Q 275,48 271,41" fill="#bfdbfe" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M 278,73 Q 284,63 280,55" fill="#bfdbfe" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M 265,43 Q 270,33 266,26" fill="#bfdbfe" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
+
+      <!-- GRASS CLIPPINGS (lime green, exploding upward and to the right off the reel) -->
+      <g style="animation: flyUp 2s ease-out infinite; animation-delay: 0s;">
+        <path d="M 120,248 Q 129,237 138,228" stroke="#4ADE80" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <g style="animation: flyUp 2s ease-out infinite; animation-delay: 0.35s;">
+        <path d="M 110,252 Q 117,240 120,229" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+      <g style="animation: flyUp 2s ease-out infinite; animation-delay: 0.7s;">
+        <path d="M 130,244 Q 139,231 144,220" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+      <g style="animation: flyUp 2s ease-out infinite; animation-delay: 1.05s;">
+        <path d="M 104,250 Q 110,238 114,226" stroke="#4ADE80" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <g style="animation: flyUp 2s ease-out infinite; animation-delay: 1.4s;">
+        <path d="M 136,240 Q 146,227 152,216" stroke="#4ADE80" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <g style="animation: flyUp 2s ease-out infinite; animation-delay: 1.75s;">
+        <path d="M 116,244 Q 125,232 130,220" stroke="#4ADE80" stroke-width="2" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Headline -->
+  <div class="relative z-10 mb-6 leading-none">
+    <div class="text-5xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight text-deere">DOES YOUR YARD</div>
+    <div class="text-5xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight text-white">NEED A</div>
+    <div class="text-6xl sm:text-8xl md:text-9xl font-black uppercase tracking-tight text-screaming">GRASSWHOOPIN'?</div>
+  </div>
+
+  <!-- Tagline -->
+  <p class="text-xl md:text-2xl font-bold italic text-rust mb-10 relative z-10">We'll handle it.</p>
+
+  <!-- CTA Button -->
+  <a href="#contact" class="cta-btn relative z-10 inline-block text-deere border-4 border-deere px-10 py-5 text-xl md:text-2xl font-black uppercase tracking-wider">
+    TEXT US NOW
+  </a>
+
+</section>
+
+<style>
+  .hero {
+    background: linear-gradient(to bottom, #0F2C23, #000000);
+  }
+  .camo-overlay {
+    background-image: radial-gradient(circle, rgba(75, 83, 32, 0.18) 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+  }
+  .cta-btn {
+    box-shadow: 0 0 18px rgba(250, 204, 21, 0.35);
+    transition: box-shadow 0.2s;
+  }
+  .cta-btn:hover {
+    box-shadow: 0 0 36px rgba(250, 204, 21, 0.72);
+    animation: shake 0.4s ease-in-out;
+  }
+</style>
