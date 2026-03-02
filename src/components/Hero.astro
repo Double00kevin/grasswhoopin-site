@@ -1,50 +1,105 @@
 ---
 ---
 
-<section class="hero min-h-screen flex items-center overflow-hidden relative">
+<section class="hero min-h-screen relative overflow-hidden">
+  <div class="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 md:py-20">
 
-  <!-- Gradient overlay: left lighter so mascot shows through, right darker for text readability -->
-  <div class="overlay absolute inset-0" aria-hidden="true"></div>
+    <!-- Two-column row: text left / image right on desktop; image top / text below on mobile -->
+    <div class="top-row flex flex-col md:flex-row">
 
-  <!-- Content: centered on mobile, right half on desktop -->
-  <div class="relative z-10 w-full flex justify-center md:justify-end">
-    <div class="max-w-xl w-full px-6 py-20 md:py-0 md:pr-16 lg:pr-24 text-center md:text-left">
-
-      <!-- Headline -->
-      <div class="mb-6 leading-none">
-        <div class="text-5xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight text-deere">DOES YOUR YARD</div>
-        <div class="text-5xl sm:text-7xl md:text-8xl font-black uppercase tracking-tight text-white">NEED A</div>
-        <div class="text-6xl sm:text-8xl md:text-9xl font-black uppercase tracking-tight text-screaming">GRASSWHOOPIN'?</div>
+      <!-- Text stack: desktop order-1 (left), mobile order-2 (below image) -->
+      <div class="text-col order-2 md:order-1 text-center md:text-left">
+        <div class="word font-black uppercase leading-none text-deere">DOES</div>
+        <div class="word font-black uppercase leading-none text-deere">YOUR</div>
+        <div class="word font-black uppercase leading-none text-deere">YARD</div>
+        <div class="word font-black uppercase leading-none text-deere">NEED A</div>
       </div>
 
-      <!-- Tagline -->
-      <p class="text-xl md:text-2xl font-bold italic text-rust mb-10">We'll handle it.</p>
+      <!-- Mascot image: desktop order-2 (right), mobile order-1 (top) -->
+      <div class="mascot-col order-1 md:order-2">
+        <img
+          src="/mascot.jpg"
+          alt="Grasswhoopin' mascot"
+          class="mascot-img"
+          style="object-position: top center;"
+        />
+      </div>
 
-      <!-- CTA Button -->
+    </div>
+
+    <!-- GRASSWHOOPIN'? — full width below both columns, no top spacing, image bleeds naturally -->
+    <div class="grasswhoopin font-black uppercase leading-none text-center md:text-left">GRASSWHOOPIN'?</div>
+
+    <!-- Tagline and CTA — centered -->
+    <div class="text-center mt-10">
+      <p class="text-xl md:text-2xl font-bold italic text-rust mb-10">We'll handle it.</p>
       <a href="#contact" class="cta-btn inline-block text-deere border-4 border-deere px-10 py-5 text-xl md:text-2xl font-black uppercase tracking-wider">
         TEXT US NOW
       </a>
-
     </div>
-  </div>
 
+  </div>
 </section>
 
 <style>
   .hero {
-    background-image: url('/mascot.jpg');
-    background-size: cover;
-    background-position: center;
+    background: linear-gradient(to bottom, #0F2C23, #000000);
   }
-  .overlay {
-    background: linear-gradient(
-      to right,
-      rgba(0, 0, 0, 0.25) 0%,
-      rgba(0, 0, 0, 0.20) 35%,
-      rgba(0, 0, 0, 0.78) 58%,
-      rgba(0, 0, 0, 0.88) 100%
-    );
+
+  /* Stacked headline words */
+  .word {
+    font-size: clamp(3rem, 8vw, 7rem);
   }
+
+  /* Mascot image — mobile: full width, square */
+  .mascot-col {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+  }
+  .mascot-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  /* Desktop: equal-height columns via align-items stretch */
+  @media (min-width: 768px) {
+    .top-row {
+      align-items: stretch;
+    }
+    .text-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .mascot-col {
+      flex: 1;
+      aspect-ratio: unset;
+      display: flex;
+      flex-direction: column;
+    }
+    .mascot-img {
+      flex: 1;
+      min-height: 0;
+    }
+  }
+
+  /* GRASSWHOOPIN'? — gradient text, no top margin so image bleeds naturally into it */
+  .grasswhoopin {
+    font-size: clamp(2.5rem, 8.5vw, 8rem);
+    background: linear-gradient(to right, #FACC15, #4ADE80);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    /* drop-shadow used because text-shadow has no effect on transparent gradient text */
+    filter: drop-shadow(1px 1px 3px rgba(0, 0, 0, 0.8));
+  }
+
+  /* CTA button */
   .cta-btn {
     box-shadow: 0 0 18px rgba(250, 204, 21, 0.35);
     transition: box-shadow 0.2s;
