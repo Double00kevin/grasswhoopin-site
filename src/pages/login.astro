@@ -1,0 +1,86 @@
+---
+import '../styles/global.css';
+
+const cookie = Astro.cookies.get('gw_admin');
+if (cookie?.value === 'authorized') {
+  return Astro.redirect('/admin');
+}
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const password = form.get('password')?.toString() ?? '';
+  const adminPassword = Astro.locals.runtime.env.ADMIN_PASSWORD;
+
+  if (password && password === adminPassword) {
+    Astro.cookies.set('gw_admin', 'authorized', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    return Astro.redirect('/admin');
+  } else {
+    error = "Wrong password, recruit. Hit the road or try again.";
+  }
+}
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Grasswhoopin' HQ — Identify Yourself</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      body { font-family: 'Barlow', sans-serif; }
+      h1   { font-family: 'Barlow Condensed', sans-serif; }
+      .btn { font-family: 'Barlow Condensed', sans-serif; }
+    </style>
+  </head>
+  <body class="bg-army min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-sm mx-auto px-6">
+
+      <div class="text-center mb-8">
+        <h1 class="text-4xl font-black text-deere tracking-widest uppercase">
+          GRASSWHOOPIN' HQ
+        </h1>
+        <p class="text-screaming text-xs mt-2 tracking-[0.2em] uppercase">Authorized Personnel Only</p>
+      </div>
+
+      {error && (
+        <div class="bg-rust/20 border border-rust text-rust text-sm p-3 rounded mb-4 text-center">
+          {error}
+        </div>
+      )}
+
+      <form method="POST" class="bg-olive border border-camo rounded-lg p-6 space-y-4">
+        <div>
+          <label class="block text-gray-400 text-xs tracking-widest uppercase mb-1" for="password">
+            Password
+          </label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            required
+            autofocus
+            class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+          />
+        </div>
+        <button
+          type="submit"
+          class="btn w-full bg-deere text-army font-black py-2 px-4 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
+        >
+          ENTER THE COMPOUND
+        </button>
+      </form>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+	"main": "dist/_worker.js/index.js",
+	"name": "grasswhoopin-site",
+	"compatibility_date": "2026-03-02",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"assets": {
+		"binding": "ASSETS",
+		"directory": "./dist"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "grasswhoopin_db",
+			"database_name": "grasswhoopin-db",
+			"database_id": "63ed98dc-91b0-4437-abab-e97bb4cd192f"
+		}
+	]
+}

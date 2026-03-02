@@ -1,0 +1,201 @@
+---
+import '../styles/global.css';
+
+const cookie = Astro.cookies.get('gw_admin');
+if (cookie?.value !== 'authorized') {
+  return Astro.redirect('/login');
+}
+
+const db = Astro.locals.runtime.env.grasswhoopin_db;
+
+interface CustomerRow {
+  id: number;
+  name: string;
+  address: string;
+  phone: string | null;
+  frequency: string;
+  notes: string | null;
+  created_at: string;
+  last_cut: string | null;
+  total_cuts: number;
+}
+
+const { results: customers } = await db
+  .prepare(`
+    SELECT
+      c.*,
+      MAX(cu.cut_date) AS last_cut,
+      COUNT(cu.id) AS total_cuts
+    FROM customers c
+    LEFT JOIN cuts cu ON cu.customer_id = c.id
+    WHERE c.active = 1
+    GROUP BY c.id
+    ORDER BY c.name
+  `)
+  .all<CustomerRow>();
+
+const url = new URL(Astro.request.url);
+const justAdded  = url.searchParams.get('added');
+const justWhooped = url.searchParams.get('whooped');
+const hasError   = url.searchParams.get('error');
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Grasswhoopin' Command Center</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      body, input, select, button { font-family: 'Barlow', sans-serif; }
+      h1, h2, .condensed { font-family: 'Barlow Condensed', sans-serif; }
+    </style>
+  </head>
+  <body class="bg-army min-h-screen text-gray-100">
+
+    <!-- Header -->
+    <header class="bg-olive border-b border-camo px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-2xl font-black text-deere tracking-widest uppercase">
+        COMMAND CENTER
+      </h1>
+      <a
+        href="/admin/logout"
+        class="text-xs text-gray-400 border border-camo rounded px-3 py-1 hover:border-rust hover:text-rust transition-colors tracking-widest uppercase"
+      >
+        FALL OUT
+      </a>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 space-y-10">
+
+      <!-- Flash banners -->
+      {justAdded && (
+        <div class="bg-screaming/10 border border-screaming text-screaming text-sm p-3 rounded text-center tracking-wide">
+          RECRUIT ENLISTED. WELCOME TO HELL.
+        </div>
+      )}
+      {justWhooped && (
+        <div class="bg-deere/10 border border-deere text-deere text-sm p-3 rounded text-center tracking-wide">
+          YARD HAS BEEN WHOOPED. OUTSTANDING.
+        </div>
+      )}
+      {hasError && (
+        <div class="bg-rust/20 border border-rust text-rust text-sm p-3 rounded text-center tracking-wide">
+          SOMETHING WENT WRONG. CHECK THE LOGS, SOLDIER.
+        </div>
+      )}
+
+      <!-- Enlist New Recruit -->
+      <section>
+        <h2 class="text-xl font-black text-deere tracking-widest uppercase mb-4">
+          ENLIST NEW RECRUIT
+        </h2>
+        <form
+          method="POST"
+          action="/api/customers"
+          class="bg-olive border border-camo rounded-lg p-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
+        >
+          <div>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="name">Name *</label>
+            <input
+              type="text" name="name" id="name" required
+              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="phone">Phone</label>
+            <input
+              type="tel" name="phone" id="phone"
+              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="address">Address *</label>
+            <input
+              type="text" name="address" id="address" required
+              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="frequency">Frequency</label>
+            <select
+              name="frequency" id="frequency"
+              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+            >
+              <option value="weekly">Weekly</option>
+              <option value="bi-weekly">Bi-Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="one-time">One-Time</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="notes">Notes</label>
+            <input
+              type="text" name="notes" id="notes"
+              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <button
+              type="submit"
+              class="condensed bg-deere text-army font-black py-2 px-6 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
+            >
+              ENLIST RECRUIT
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Recruits Roster -->
+      <section>
+        <h2 class="text-xl font-black text-deere tracking-widest uppercase mb-4">
+          RECRUITS ROSTER
+          <span class="text-gray-500 font-normal text-base normal-case tracking-normal ml-2">
+            ({customers.length})
+          </span>
+        </h2>
+
+        {customers.length === 0 ? (
+          <p class="text-gray-500 italic text-sm">No recruits on the rolls yet. Enlist your first one above.</p>
+        ) : (
+          <div class="space-y-3">
+            {customers.map((c) => (
+              <div class="bg-olive border border-camo rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="condensed text-lg font-bold text-white tracking-wide">{c.name}</span>
+                    <span class="text-xs text-gray-500 border border-camo rounded px-2 py-0.5 uppercase tracking-wider">
+                      {c.frequency}
+                    </span>
+                  </div>
+                  <div class="text-sm text-gray-400">{c.address}</div>
+                  {c.phone && <div class="text-sm text-gray-400">{c.phone}</div>}
+                  {c.notes && <div class="text-xs text-gray-500 mt-0.5 italic">{c.notes}</div>}
+                  <div class="text-xs mt-1.5">
+                    {c.last_cut
+                      ? <span class="text-screaming">Last whooped: {c.last_cut} &mdash; {c.total_cuts} total</span>
+                      : <span class="text-rust font-bold tracking-wide uppercase">NEVER WHOOPED</span>
+                    }
+                  </div>
+                </div>
+                <form method="POST" action="/api/cuts" class="shrink-0">
+                  <input type="hidden" name="customer_id" value={c.id} />
+                  <button
+                    type="submit"
+                    class="condensed bg-screaming text-army font-black py-2 px-5 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
+                  >
+                    GRASSWHOOPED
+                  </button>
+                </form>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+    </main>
+  </body>
+</html>
