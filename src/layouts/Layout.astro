@@ -20,11 +20,15 @@ import '../styles/global.css';
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
 
-    <meta property="og:title" content="Grasswhoopin' | Lawn Care" />
+    <meta property="og:title" content={title} />
     <meta property="og:description" content="Does your yard need a Grasswhoopin'? No-BS lawn care serving the Tennessee-Alabama border area. Text us." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://grasswhoopin.com" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:url" content="https://www.grasswhoopin.com" />
+    <meta property="og:image" content="https://www.grasswhoopin.com/mascot.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content="Does your yard need a Grasswhoopin'? No-BS lawn care serving the Tennessee-Alabama border area. Text us." />
+    <meta name="twitter:image" content="https://www.grasswhoopin.com/mascot.png" />
 
     <script is:inline type="application/ld+json">
     {
