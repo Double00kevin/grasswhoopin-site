@@ -7,6 +7,8 @@ export const POST: APIRoute = async ({ request, cookies, locals, redirect }) => 
 
   const form = await request.formData();
   const customerId = form.get('customer_id')?.toString() ?? '';
+  const priceRaw   = form.get('price')?.toString().trim() || null;
+  const price      = priceRaw ? parseFloat(priceRaw) : null;
   const notes      = form.get('notes')?.toString().trim() || null;
 
   if (!customerId) {
@@ -16,8 +18,8 @@ export const POST: APIRoute = async ({ request, cookies, locals, redirect }) => 
   const db = locals.runtime.env.grasswhoopin_db;
 
   await db
-    .prepare('INSERT INTO cuts (customer_id, notes) VALUES (?, ?)')
-    .bind(parseInt(customerId, 10), notes)
+    .prepare('INSERT INTO cuts (customer_id, price, notes) VALUES (?, ?, ?)')
+    .bind(parseInt(customerId, 10), price, notes)
     .run();
 
   return redirect('/admin?whooped=1', 303);

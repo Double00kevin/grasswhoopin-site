@@ -14,9 +14,11 @@ interface CustomerRow {
   address: string;
   phone: string | null;
   frequency: string;
+  quoted_price: number | null;
   notes: string | null;
   created_at: string;
   last_cut: string | null;
+  last_price: number | null;
   total_cuts: number;
 }
 
@@ -25,7 +27,8 @@ const { results: customers } = await db
     SELECT
       c.*,
       MAX(cu.cut_date) AS last_cut,
-      COUNT(cu.id) AS total_cuts
+      COUNT(cu.id) AS total_cuts,
+      (SELECT price FROM cuts WHERE customer_id = c.id ORDER BY cut_date DESC, id DESC LIMIT 1) AS last_price
     FROM customers c
     LEFT JOIN cuts cu ON cu.customer_id = c.id
     WHERE c.active = 1
@@ -132,6 +135,16 @@ const hasError   = url.searchParams.get('error');
             </select>
           </div>
           <div>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="quoted_price">Quoted Price</label>
+            <div class="flex items-center bg-army border border-camo rounded overflow-hidden focus-within:border-deere transition-colors">
+              <span class="px-2 text-gray-500 select-none text-sm">$</span>
+              <input
+                type="number" name="quoted_price" id="quoted_price" min="0" step="0.01" placeholder="0.00"
+                class="w-full bg-transparent py-2 pr-3 text-white focus:outline-none text-sm"
+              />
+            </div>
+          </div>
+          <div>
             <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="notes">Notes</label>
             <input
               type="text" name="notes" id="notes"
@@ -170,20 +183,36 @@ const hasError   = url.searchParams.get('error');
                     <span class="recruit-freq text-xs text-gray-500 border border-camo rounded px-2 py-0.5 uppercase tracking-wider">
                       {c.frequency}
                     </span>
+                    {c.quoted_price != null && (
+                      <span class="recruit-quoted text-xs text-deere border border-deere/40 rounded px-2 py-0.5 tracking-wider">
+                        ${c.quoted_price.toFixed(2)}/cut
+                      </span>
+                    )}
                   </div>
                   <div class="recruit-address text-sm text-gray-400">{c.address}</div>
                   {c.phone && <div class="recruit-phone text-sm text-gray-400">{c.phone}</div>}
                   {c.notes && <div class="recruit-notes text-xs text-gray-500 mt-0.5 italic">{c.notes}</div>}
                   <div class="text-xs mt-1.5">
                     {c.last_cut
-                      ? <span class="text-screaming">Last whooped: {c.last_cut} &mdash; {c.total_cuts} total</span>
+                      ? <span class="text-screaming">
+                          Last whooped: {c.last_cut}
+                          {c.last_price != null && <> &mdash; <span class="text-deere">${c.last_price.toFixed(2)}</span></>}
+                          {' '}&mdash; {c.total_cuts} total
+                        </span>
                       : <span class="text-rust font-bold tracking-wide uppercase">NEVER WHOOPED</span>
                     }
                   </div>
                 </div>
                 <div class="shrink-0 flex flex-col gap-2 items-stretch">
-                  <form method="POST" action="/api/cuts">
+                  <form method="POST" action="/api/cuts" class="flex flex-col gap-1.5">
                     <input type="hidden" name="customer_id" value={c.id} />
+                    <div class="flex items-center bg-army border border-camo rounded overflow-hidden text-sm focus-within:border-deere transition-colors">
+                      <span class="px-2 text-gray-500 select-none">$</span>
+                      <input
+                        type="number" name="price" min="0" step="0.01" placeholder="0.00"
+                        class="w-full bg-transparent py-1.5 pr-2 text-white focus:outline-none"
+                      />
+                    </div>
                     <button
                       type="submit"
                       class="condensed w-full bg-screaming text-army font-black py-2 px-5 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
@@ -199,6 +228,7 @@ const hasError   = url.searchParams.get('error');
                     data-address={c.address}
                     data-phone={c.phone ?? ''}
                     data-frequency={c.frequency}
+                    data-quoted_price={c.quoted_price != null ? String(c.quoted_price) : ''}
                     data-notes={c.notes ?? ''}
                   >
                     EDIT
@@ -274,6 +304,16 @@ const hasError   = url.searchParams.get('error');
             </select>
           </div>
           <div>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-quoted_price">Quoted Price</label>
+            <div class="flex items-center bg-army border border-camo rounded overflow-hidden focus-within:border-deere transition-colors">
+              <span class="px-2 text-gray-500 select-none text-sm">$</span>
+              <input
+                type="number" id="edit-quoted_price" name="quoted_price" min="0" step="0.01" placeholder="0.00"
+                class="w-full bg-transparent py-2 pr-3 text-white focus:outline-none text-sm"
+              />
+            </div>
+          </div>
+          <div>
             <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-notes">Notes</label>
             <input
               type="text" id="edit-notes" name="notes"
@@ -326,12 +366,13 @@ const hasError   = url.searchParams.get('error');
       const errMsg    = document.getElementById('edit-error')!;
 
       function openModal(btn: HTMLButtonElement) {
-        const { id, name, address, phone, frequency, notes } = btn.dataset;
-        (document.getElementById('edit-id')      as HTMLInputElement).value = id ?? '';
-        (document.getElementById('edit-name')    as HTMLInputElement).value = name ?? '';
-        (document.getElementById('edit-address') as HTMLInputElement).value = address ?? '';
-        (document.getElementById('edit-phone')   as HTMLInputElement).value = phone ?? '';
-        (document.getElementById('edit-notes')   as HTMLInputElement).value = notes ?? '';
+        const { id, name, address, phone, frequency, quoted_price, notes } = btn.dataset;
+        (document.getElementById('edit-id')           as HTMLInputElement).value = id ?? '';
+        (document.getElementById('edit-name')         as HTMLInputElement).value = name ?? '';
+        (document.getElementById('edit-address')      as HTMLInputElement).value = address ?? '';
+        (document.getElementById('edit-phone')        as HTMLInputElement).value = phone ?? '';
+        (document.getElementById('edit-quoted_price') as HTMLInputElement).value = quoted_price ?? '';
+        (document.getElementById('edit-notes')        as HTMLInputElement).value = notes ?? '';
         const sel = document.getElementById('edit-frequency') as HTMLSelectElement;
         sel.value = frequency ?? 'weekly';
         errMsg.classList.add('hidden');
@@ -370,11 +411,13 @@ const hasError   = url.searchParams.get('error');
         // Update the roster card in place without a full reload
         const card = document.getElementById(`recruit-${id}`);
         if (card) {
-          const name      = data.get('name')?.toString() ?? '';
-          const address   = data.get('address')?.toString() ?? '';
-          const phone     = data.get('phone')?.toString() ?? '';
-          const frequency = data.get('frequency')?.toString() ?? '';
-          const notes     = data.get('notes')?.toString() ?? '';
+          const name         = data.get('name')?.toString() ?? '';
+          const address      = data.get('address')?.toString() ?? '';
+          const phone        = data.get('phone')?.toString() ?? '';
+          const frequency    = data.get('frequency')?.toString() ?? '';
+          const quotedRaw    = data.get('quoted_price')?.toString() ?? '';
+          const quoted_price = quotedRaw ? parseFloat(quotedRaw) : null;
+          const notes        = data.get('notes')?.toString() ?? '';
 
           card.querySelector<HTMLElement>('.recruit-name')!.textContent = name;
           card.querySelector<HTMLElement>('.recruit-address')!.textContent = address;
@@ -388,6 +431,25 @@ const hasError   = url.searchParams.get('error');
           const freqEl = card.querySelector<HTMLElement>('.recruit-freq');
           if (freqEl) freqEl.textContent = frequency;
 
+          const quotedEl = card.querySelector<HTMLElement>('.recruit-quoted');
+          if (quoted_price != null) {
+            const label = `$${quoted_price.toFixed(2)}/cut`;
+            if (quotedEl) {
+              quotedEl.textContent = label;
+            } else {
+              // Badge didn't exist before — insert it after the freq badge
+              const freqBadge = card.querySelector('.recruit-freq');
+              if (freqBadge) {
+                const span = document.createElement('span');
+                span.className = 'recruit-quoted text-xs text-deere border border-deere/40 rounded px-2 py-0.5 tracking-wider';
+                span.textContent = label;
+                freqBadge.insertAdjacentElement('afterend', span);
+              }
+            }
+          } else if (quotedEl) {
+            quotedEl.remove();
+          }
+
           // Keep edit-btn data attrs in sync for subsequent edits
           const editBtn = card.querySelector<HTMLButtonElement>('.edit-btn');
           if (editBtn) {
@@ -395,6 +457,7 @@ const hasError   = url.searchParams.get('error');
             editBtn.dataset.address = address;
             editBtn.dataset.phone = phone;
             editBtn.dataset.frequency = frequency;
+            editBtn.dataset.quoted_price = quotedRaw;
             editBtn.dataset.notes = notes;
           }
           // Keep discharge-btn name in sync

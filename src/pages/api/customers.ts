@@ -39,11 +39,13 @@ export const PUT: APIRoute = async ({ request, cookies, locals }) => {
   }
 
   const form = await request.formData();
-  const name      = form.get('name')?.toString().trim() ?? '';
-  const address   = form.get('address')?.toString().trim() ?? '';
-  const phone     = form.get('phone')?.toString().trim() || null;
-  const frequency = form.get('frequency')?.toString() ?? 'weekly';
-  const notes     = form.get('notes')?.toString().trim() || null;
+  const name         = form.get('name')?.toString().trim() ?? '';
+  const address      = form.get('address')?.toString().trim() ?? '';
+  const phone        = form.get('phone')?.toString().trim() || null;
+  const frequency    = form.get('frequency')?.toString() ?? 'weekly';
+  const quotedRaw    = form.get('quoted_price')?.toString().trim() || null;
+  const quoted_price = quotedRaw ? parseFloat(quotedRaw) : null;
+  const notes        = form.get('notes')?.toString().trim() || null;
 
   if (!name || !address) {
     return new Response(JSON.stringify({ error: 'Name and address required' }), {
@@ -54,8 +56,8 @@ export const PUT: APIRoute = async ({ request, cookies, locals }) => {
 
   const db = locals.runtime.env.grasswhoopin_db;
   await db
-    .prepare('UPDATE customers SET name = ?, address = ?, phone = ?, frequency = ?, notes = ? WHERE id = ?')
-    .bind(name, address, phone, frequency, notes, customerId)
+    .prepare('UPDATE customers SET name = ?, address = ?, phone = ?, frequency = ?, quoted_price = ?, notes = ? WHERE id = ?')
+    .bind(name, address, phone, frequency, quoted_price, notes, customerId)
     .run();
 
   return new Response(JSON.stringify({ ok: true }), {
@@ -70,11 +72,13 @@ export const POST: APIRoute = async ({ request, cookies, locals, redirect }) => 
   }
 
   const form = await request.formData();
-  const name      = form.get('name')?.toString().trim() ?? '';
-  const address   = form.get('address')?.toString().trim() ?? '';
-  const phone     = form.get('phone')?.toString().trim() || null;
-  const frequency = form.get('frequency')?.toString() ?? 'weekly';
-  const notes     = form.get('notes')?.toString().trim() || null;
+  const name         = form.get('name')?.toString().trim() ?? '';
+  const address      = form.get('address')?.toString().trim() ?? '';
+  const phone        = form.get('phone')?.toString().trim() || null;
+  const frequency    = form.get('frequency')?.toString() ?? 'weekly';
+  const quotedRaw    = form.get('quoted_price')?.toString().trim() || null;
+  const quoted_price = quotedRaw ? parseFloat(quotedRaw) : null;
+  const notes        = form.get('notes')?.toString().trim() || null;
 
   if (!name || !address) {
     return redirect('/admin?error=1', 303);
@@ -83,8 +87,8 @@ export const POST: APIRoute = async ({ request, cookies, locals, redirect }) => 
   const db = locals.runtime.env.grasswhoopin_db;
 
   await db
-    .prepare('INSERT INTO customers (name, address, phone, frequency, notes) VALUES (?, ?, ?, ?, ?)')
-    .bind(name, address, phone, frequency, notes)
+    .prepare('INSERT INTO customers (name, address, phone, frequency, quoted_price, notes) VALUES (?, ?, ?, ?, ?, ?)')
+    .bind(name, address, phone, frequency, quoted_price, notes)
     .run();
 
   return redirect('/admin?added=1', 303);
