@@ -15,8 +15,30 @@ export const DELETE: APIRoute = async ({ request, cookies, locals }) => {
   }
 
   const db = locals.runtime.env.grasswhoopin_db;
-  await db.prepare('DELETE FROM cuts WHERE customer_id = ?').bind(customerId).run();
-  await db.prepare('DELETE FROM customers WHERE id = ?').bind(customerId).run();
+  await db.prepare('UPDATE customers SET active = 0 WHERE id = ?').bind(customerId).run();
+
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+};
+
+export const PATCH: APIRoute = async ({ request, cookies, locals }) => {
+  if (cookies.get('gw_admin')?.value !== 'authorized') {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const id = new URL(request.url).searchParams.get('id');
+  const customerId = id ? parseInt(id, 10) : NaN;
+  if (!id || isNaN(customerId)) {
+    return new Response(JSON.stringify({ error: 'Missing or invalid id' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const db = locals.runtime.env.grasswhoopin_db;
+  await db.prepare('UPDATE customers SET active = 1 WHERE id = ?').bind(customerId).run();
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,

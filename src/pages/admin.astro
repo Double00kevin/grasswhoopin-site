@@ -37,6 +37,26 @@ const { results: customers } = await db
   `)
   .all<CustomerRow>();
 
+interface DischargedRow {
+  id: number;
+  name: string;
+  address: string;
+  frequency: string;
+}
+
+const [monthStatsRes, allTimeStatsRes, monthCutsRes] = await db.batch([
+  db.prepare(`SELECT COALESCE(SUM(price), 0) as total FROM cuts WHERE strftime('%Y-%m', cut_date) = strftime('%Y-%m', 'now')`),
+  db.prepare(`SELECT COALESCE(SUM(price), 0) as total FROM cuts`),
+  db.prepare(`SELECT COUNT(*) as count FROM cuts WHERE strftime('%Y-%m', cut_date) = strftime('%Y-%m', 'now')`),
+]);
+const revenueMonth = (monthStatsRes.results[0]  as any).total as number;
+const revenueAll   = (allTimeStatsRes.results[0] as any).total as number;
+const cutsMonth    = (monthCutsRes.results[0]    as any).count as number;
+
+const { results: discharged } = await db
+  .prepare('SELECT id, name, address, frequency FROM customers WHERE active = 0 ORDER BY name')
+  .all<DischargedRow>();
+
 const url = new URL(Astro.request.url);
 const justAdded  = url.searchParams.get('added');
 const justWhooped = url.searchParams.get('whooped');
@@ -90,6 +110,26 @@ const hasError   = url.searchParams.get('error');
           SOMETHING WENT WRONG. CHECK THE LOGS, SOLDIER.
         </div>
       )}
+
+      <!-- Stats Panel -->
+      <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-olive border border-camo rounded-lg p-4 text-center">
+          <div class="condensed text-2xl font-black text-screaming">{customers.length}</div>
+          <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">Active Recruits</div>
+        </div>
+        <div class="bg-olive border border-camo rounded-lg p-4 text-center">
+          <div class="condensed text-2xl font-black text-deere">{cutsMonth}</div>
+          <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">Cuts This Month</div>
+        </div>
+        <div class="bg-olive border border-camo rounded-lg p-4 text-center">
+          <div class="condensed text-2xl font-black text-deere">${revenueMonth.toFixed(2)}</div>
+          <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">Revenue This Month</div>
+        </div>
+        <div class="bg-olive border border-camo rounded-lg p-4 text-center">
+          <div class="condensed text-2xl font-black text-screaming">${revenueAll.toFixed(2)}</div>
+          <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">Revenue All-Time</div>
+        </div>
+      </section>
 
       <!-- Enlist New Recruit -->
       <section>
@@ -248,6 +288,44 @@ const hasError   = url.searchParams.get('error');
         )}
       </section>
 
+      <!-- Discharged Roster -->
+      {discharged.length > 0 && (
+        <section>
+          <details>
+            <summary class="cursor-pointer list-none flex flex-wrap items-center gap-2 mb-4">
+              <h2 class="condensed text-xl font-black text-rust tracking-widest uppercase">
+                DISCHARGED
+              </h2>
+              <span class="text-gray-500 font-normal text-base normal-case tracking-normal">
+                ({discharged.length})
+              </span>
+              <span class="text-gray-500 text-xs tracking-widest uppercase ml-auto">▼ EXPAND</span>
+            </summary>
+            <div class="space-y-3">
+              {discharged.map((c) => (
+                <div id={`discharged-${c.id}`} class="bg-olive border border-camo/50 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-4 opacity-60">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                      <span class="condensed text-lg font-bold text-gray-400 tracking-wide">{c.name}</span>
+                      <span class="text-xs text-gray-600 border border-camo/50 rounded px-2 py-0.5 uppercase tracking-wider">{c.frequency}</span>
+                    </div>
+                    <div class="text-sm text-gray-600">{c.address}</div>
+                  </div>
+                  <button
+                    type="button"
+                    class="condensed reinstate-btn shrink-0 text-xs text-screaming border border-screaming/40 rounded px-3 py-1.5 hover:border-screaming transition-colors tracking-widest uppercase"
+                    data-id={String(c.id)}
+                    data-name={c.name}
+                  >
+                    REINSTATE
+                  </button>
+                </div>
+              ))}
+            </div>
+          </details>
+        </section>
+      )}
+
     </main>
 
     <!-- Edit Recruit Modal -->
@@ -343,6 +421,22 @@ const hasError   = url.searchParams.get('error');
     </div>
 
     <script>
+      // --- Reinstate ---
+      document.querySelectorAll<HTMLButtonElement>('.reinstate-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const { id, name = 'this recruit' } = btn.dataset;
+          if (!confirm(`Reinstate ${name} to active roster?`)) return;
+
+          const res = await fetch(`/api/customers?id=${id}`, { method: 'PATCH' });
+          if (res.ok) {
+            document.getElementById(`discharged-${id}`)?.remove();
+            window.location.reload();
+          } else {
+            alert('Failed to reinstate. Check the logs.');
+          }
+        });
+      });
+
       // --- Discharge ---
       document.querySelectorAll<HTMLButtonElement>('.discharge-btn').forEach((btn) => {
         btn.addEventListener('click', async () => {
