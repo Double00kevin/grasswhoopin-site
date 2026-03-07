@@ -14,7 +14,8 @@ export async function GET(context: APIContext): Promise<Response> {
     return new Response("Invalid OAuth state", { status: 400 });
   }
 
-  const google = getGoogleClient(context.locals.runtime.env);
+  const callbackUrl = new URL("/auth/callback", context.url.origin).toString();
+  const google = getGoogleClient(context.locals.runtime.env, callbackUrl);
   const tokens = await google.validateAuthorizationCode(code, codeVerifier);
   const claims = decodeIdToken(tokens.idToken());
   const email = (claims as any).email as string;

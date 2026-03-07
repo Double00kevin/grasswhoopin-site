@@ -3,7 +3,7 @@ import '../styles/global.css';
 
 const cookie = Astro.cookies.get('gw_admin');
 if (cookie?.value !== 'authorized') {
-  return Astro.redirect('/login');
+  return Astro.redirect('/auth/login');
 }
 
 const db = Astro.locals.runtime.env.grasswhoopin_db;
