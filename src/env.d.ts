@@ -14,6 +14,8 @@ interface D1Database {
 interface CloudflareEnv {
   grasswhoopin_db: D1Database;
   ADMIN_PASSWORD: string;
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
 }
 
 type Runtime = import("@astrojs/cloudflare").Runtime<CloudflareEnv>;

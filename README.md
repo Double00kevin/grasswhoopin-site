@@ -101,7 +101,7 @@ All sections are currently implemented inline in `src/pages/index.astro`. The st
 
 1. **Hero** — Full-viewport animated stacked text (`DOES YOUR YARD NEED A GRASSWHOOPIN'?`), mascot PNG, SMS CTA button (`sms:2569290532`)
 2. **What We Do** — 4 services: Weekly Mowing, Edging & Trimming, Weed Control, Full Yard Overhaul
-3. **Neighbors Say** — 4 inline testimonials
+3. **What The Neighbors Are Saying** — 6 inline testimonials
 4. **Where We're Located** — Service area description (Ardmore, TN/AL border)
 5. **Contact** — Phone `tel:` link with yellow glow effect
 6. **Footer** — Copyright
@@ -129,9 +129,10 @@ Password-protected crew management panel. All admin routes require a valid `gw_a
 | `/login`           | GET/POST | Login form; validates `ADMIN_PASSWORD`, sets cookie |
 | `/admin`           | GET    | Dashboard: recruit roster, enlist form, cut logger   |
 | `/admin/logout`    | GET    | Clears cookie, redirects to `/login`                 |
-| `/api/customers`   | POST   | Add new customer (name, address, phone, frequency)   |
+| `/api/customers`   | POST   | Add new customer (name, address, phone, frequency, quoted_price) |
+| `/api/customers`   | PUT    | Edit existing customer fields (`?id=X`)              |
 | `/api/customers`   | DELETE | Remove customer + all associated cuts (`?id=X`)      |
-| `/api/cuts`        | POST   | Log a grass cut for a customer                       |
+| `/api/cuts`        | POST   | Log a grass cut for a customer (with optional price) |
 
 **Cookie:** `gw_admin=authorized` — httpOnly, secure, sameSite strict, 7-day maxAge
 
@@ -144,16 +145,17 @@ Password-protected crew management panel. All admin routes require a valid `gw_a
 D1 SQLite database. Schema source: `schema.sql`.
 
 ### `customers`
-| Column      | Type    | Notes                        |
-| :---------- | :------ | :--------------------------- |
-| id          | INTEGER | PK autoincrement             |
-| name        | TEXT    | Required                     |
-| address     | TEXT    | Required                     |
-| phone       | TEXT    |                              |
-| frequency   | TEXT    | Default: `'weekly'`          |
-| notes       | TEXT    |                              |
-| active      | INTEGER | Default: `1` (soft delete)   |
-| created_at  | TEXT    | `datetime('now')`            |
+| Column        | Type    | Notes                        |
+| :------------ | :------ | :--------------------------- |
+| id            | INTEGER | PK autoincrement             |
+| name          | TEXT    | Required                     |
+| address       | TEXT    | Required                     |
+| phone         | TEXT    |                              |
+| frequency     | TEXT    | Default: `'weekly'`          |
+| quoted_price  | REAL    | Standing per-cut price quote |
+| notes         | TEXT    |                              |
+| active        | INTEGER | Default: `1` (soft delete)   |
+| created_at    | TEXT    | `datetime('now')`            |
 
 ### `cuts`
 | Column      | Type    | Notes                        |
@@ -161,6 +163,7 @@ D1 SQLite database. Schema source: `schema.sql`.
 | id          | INTEGER | PK autoincrement             |
 | customer_id | INTEGER | FK → customers.id            |
 | cut_date    | TEXT    | Default: `date('now')`       |
+| price       | REAL    | Actual price charged         |
 | notes       | TEXT    |                              |
 | created_at  | TEXT    | `datetime('now')`            |
 
