@@ -17,3 +17,4 @@ export async function GET(context: APIContext): Promise<Response> {
   console.log("Auth URL:", url.toString());
   return context.redirect(url.toString());
 }
+// debug
