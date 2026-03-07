@@ -2,6 +2,8 @@ import type { APIContext } from "astro";
 import { getGoogleClient } from "../../lib/auth";
 import { generateState, generateCodeVerifier } from "arctic";
 
+export const prerender = false;
+
 export async function GET(context: APIContext): Promise<Response> {
   const callbackUrl = new URL("/auth/callback", context.url.origin).toString();
   const google = getGoogleClient(context.locals.runtime.env, callbackUrl);
