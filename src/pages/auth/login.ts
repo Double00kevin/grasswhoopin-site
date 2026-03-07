@@ -7,8 +7,8 @@ export const prerender = false;
 export async function GET(context: APIContext): Promise<Response> {
   const callbackUrl = new URL("/auth/callback", context.url.origin).toString();
   const google = getGoogleClient(context.locals.runtime.env, callbackUrl);
-  console.log("CLIENT_ID:", context.locals.runtime.env.GOOGLE_CLIENT_ID);
-  console.log("CLIENT_SECRET exists:", !!context.locals.runtime.env.GOOGLE_CLIENT_SECRET);
+  console.log("FULL ENV KEYS:", Object.keys(context.locals.runtime?.env ?? {}));
+  console.log("CLIENT_ID VALUE:", context.locals.runtime?.env?.GOOGLE_CLIENT_ID ?? "NOT FOUND");
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const url = google.createAuthorizationURL(state, codeVerifier, ["openid", "email"]);
