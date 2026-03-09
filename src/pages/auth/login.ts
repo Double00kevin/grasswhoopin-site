@@ -5,7 +5,9 @@ import { generateState, generateCodeVerifier } from "arctic";
 export const prerender = false;
 
 export async function GET(context: APIContext): Promise<Response> {
-  const callbackUrl = new URL("/auth/callback", context.url.origin).toString();
+  const callbackUrl = import.meta.env.DEV
+    ? "http://localhost:4321/auth/callback"
+    : new URL("/auth/callback", context.url.origin).toString();
   const google = getGoogleClient(context.locals.runtime.env, callbackUrl);
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
