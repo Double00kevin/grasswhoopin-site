@@ -13,8 +13,8 @@ export async function GET(context: APIContext): Promise<Response> {
   const codeVerifier = generateCodeVerifier();
   const url = google.createAuthorizationURL(state, codeVerifier, ["openid", "email"]);
 
-  context.cookies.set("google_state", state, { httpOnly: true, secure: !import.meta.env.DEV, maxAge: 600, path: "/" });
-  context.cookies.set("google_code_verifier", codeVerifier, { httpOnly: true, secure: !import.meta.env.DEV, maxAge: 600, path: "/" });
+  context.cookies.set("google_state", state, { httpOnly: true, secure: !import.meta.env.DEV, sameSite: "lax", maxAge: 600, path: "/" });
+  context.cookies.set("google_code_verifier", codeVerifier, { httpOnly: true, secure: !import.meta.env.DEV, sameSite: "lax", maxAge: 600, path: "/" });
 
   return context.redirect(url.toString());
 }

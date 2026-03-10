@@ -30,7 +30,7 @@ export async function GET(context: APIContext): Promise<Response> {
   context.cookies.set("gw_admin", "authorized", {
     httpOnly: true,
     secure: context.url.protocol === "https:",
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7,
     path: "/"
   });
