@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import AdminLayout from '../layouts/AdminLayout.astro';
+import AdminStats from '../components/AdminStats.astro';
 
 const cookie = Astro.cookies.get('gw_admin');
 if (cookie?.value !== 'authorized') {
@@ -111,25 +113,12 @@ const hasError   = url.searchParams.get('error');
         </div>
       )}
 
-      <!-- Stats Panel -->
-      <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div class="bg-olive border border-camo rounded-lg p-4 text-center">
-          <div class="condensed text-2xl font-black text-screaming">{customers.length}</div>
-          <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">Active Recruits</div>
-        </div>
-        <div class="bg-olive border border-camo rounded-lg p-4 text-center">
-          <div class="condensed text-2xl font-black text-deere">{cutsMonth}</div>
-          <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">Cuts This Month</div>
-        </div>
-        <div class="bg-olive border border-camo rounded-lg p-4 text-center">
-          <div class="condensed text-2xl font-black text-deere">${revenueMonth.toFixed(2)}</div>
-          <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">Revenue This Month</div>
-        </div>
-        <div class="bg-olive border border-camo rounded-lg p-4 text-center">
-          <div class="condensed text-2xl font-black text-screaming">${revenueAll.toFixed(2)}</div>
-          <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">Revenue All-Time</div>
-        </div>
-      </section>
+      <AdminStats
+        totalCustomers={customers.length}
+        cutsMonth={cutsMonth}
+        revenueMonth={revenueMonth}
+        revenueAll={revenueAll}
+      />
 
       <!-- Enlist New Recruit -->
       <section>

@@ -1,0 +1,50 @@
+---
+interface Props {
+  totalCustomers: number;
+  cutsMonth: number;
+  revenueMonth: number;
+  revenueAll: number;
+}
+
+const { totalCustomers, cutsMonth, revenueMonth, revenueAll } = Astro.props;
+---
+
+<section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+  <div class="bg-olive border border-camo rounded-lg p-4 text-center">
+    <div class="condensed text-2xl font-black text-screaming">
+      {totalCustomers}
+    </div>
+    <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">
+      Active Recruits
+    </div>
+  </div>
+
+  <div class="bg-olive border border-camo rounded-lg p-4 text-center">
+    <div class="condensed text-2xl font-black text-deere">
+      {cutsMonth}
+    </div>
+    <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">
+      Cuts This Month
+    </div>
+  </div>
+
+  <div class="bg-olive border border-camo rounded-lg p-4 text-center">
+    <div class="condensed text-2xl font-black text-deere">
+      ${revenueMonth.toFixed(2)}
+    </div>
+    <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">
+      Revenue This Month
+    </div>
+  </div>
+
+  <div class="bg-olive border border-camo rounded-lg p-4 text-center">
+    <div class="condensed text-2xl font-black text-screaming">
+      ${revenueAll.toFixed(2)}
+    </div>
+    <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">
+      Revenue All-Time
+    </div>
+  </div>
+
+</section>
