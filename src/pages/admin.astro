@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import AdminLayout from '../layouts/AdminLayout.astro';
 import AdminStats from '../components/AdminStats.astro';
+import CustomerRoster from '../components/CustomerRoster.astro';
 
 const cookie = Astro.cookies.get('gw_admin');
 if (cookie?.value !== 'authorized') {
@@ -191,91 +192,10 @@ const hasError   = url.searchParams.get('error');
         </form>
       </section>
 
-      <!-- Recruits Roster -->
-      <section>
-        <h2 class="text-xl font-black text-deere tracking-widest uppercase mb-4">
-          RECRUITS ROSTER
-          <span class="text-gray-500 font-normal text-base normal-case tracking-normal ml-2">
-            ({customers.length})
-          </span>
-        </h2>
-
-        {customers.length === 0 ? (
-          <p class="text-gray-500 italic text-sm">No recruits on the rolls yet. Enlist your first one above.</p>
-        ) : (
-          <div class="space-y-3">
-            {customers.map((c) => (
-              <div id={`recruit-${c.id}`} class="bg-olive border border-camo rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                <div class="flex-1 min-w-0">
-                  <div class="flex flex-wrap items-center gap-2 mb-1">
-                    <span class="condensed recruit-name text-lg font-bold text-white tracking-wide">{c.name}</span>
-                    <span class="recruit-freq text-xs text-gray-500 border border-camo rounded px-2 py-0.5 uppercase tracking-wider">
-                      {c.frequency}
-                    </span>
-                    {c.quoted_price != null && (
-                      <span class="recruit-quoted text-xs text-deere border border-deere/40 rounded px-2 py-0.5 tracking-wider">
-                        ${c.quoted_price.toFixed(2)}/cut
-                      </span>
-                    )}
-                  </div>
-                  <div class="recruit-address text-sm text-gray-400">{c.address}</div>
-                  {c.phone && <div class="recruit-phone text-sm text-gray-400">{c.phone}</div>}
-                  {c.notes && <div class="recruit-notes text-xs text-gray-500 mt-0.5 italic">{c.notes}</div>}
-                  <div class="text-xs mt-1.5">
-                    {c.last_cut
-                      ? <span class="text-screaming">
-                          Last whooped: {c.last_cut}
-                          {c.last_price != null && <> &mdash; <span class="text-deere">${c.last_price.toFixed(2)}</span></>}
-                          {' '}&mdash; {c.total_cuts} total
-                        </span>
-                      : <span class="text-rust font-bold tracking-wide uppercase">NEVER WHOOPED</span>
-                    }
-                  </div>
-                </div>
-                <div class="shrink-0 flex flex-col gap-2 items-stretch">
-                  <form method="POST" action="/api/cuts" class="flex flex-col gap-1.5">
-                    <input type="hidden" name="customer_id" value={c.id} />
-                    <div class="flex items-center bg-army border border-camo rounded overflow-hidden text-sm focus-within:border-deere transition-colors">
-                      <span class="px-2 text-gray-500 select-none">$</span>
-                      <input
-                        type="number" name="price" min="0" step="0.01" placeholder="0.00"
-                        class="w-full bg-transparent py-1.5 pr-2 text-white focus:outline-none"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      class="condensed w-full bg-screaming text-army font-black py-2 px-5 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
-                    >
-                      GRASSWHOOPED
-                    </button>
-                  </form>
-                  <button
-                    type="button"
-                    class="condensed edit-btn text-xs text-deere border border-camo rounded px-3 py-1.5 hover:border-deere transition-colors tracking-widest uppercase"
-                    data-id={String(c.id)}
-                    data-name={c.name}
-                    data-address={c.address}
-                    data-phone={c.phone ?? ''}
-                    data-frequency={c.frequency}
-                    data-quoted_price={c.quoted_price != null ? String(c.quoted_price) : ''}
-                    data-notes={c.notes ?? ''}
-                  >
-                    EDIT
-                  </button>
-                  <button
-                    type="button"
-                    class="condensed discharge-btn text-xs text-gray-500 border border-camo rounded px-3 py-1.5 hover:border-rust hover:text-rust transition-colors tracking-widest uppercase"
-                    data-id={String(c.id)}
-                    data-name={c.name}
-                  >
-                    DISCHARGE
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+      <CustomerRoster
+        customers={customers}
+        discharged={discharged}
+      />
 
       <!-- Discharged Roster -->
       {discharged.length > 0 && (
