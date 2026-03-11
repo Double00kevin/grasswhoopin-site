@@ -98,7 +98,7 @@ git push                # Cloudflare Pages auto-builds and deploys (~1-2 min)
 | notes | TEXT | nullable |
 | created_at | TEXT | datetime('now') |
 
-> **Production note:** `customers_backup` table also exists in production D1 (from 2026-03-11 migration). Drop it manually after confirming data integrity: `npx wrangler d1 execute grasswhoopin-db --remote --command "DROP TABLE customers_backup;"`
+> **Migration note:** `migrations/001_customers_yards.sql` applied 2026-03-11. `customers_backup` has been dropped from production D1.
 
 ### Cloudflare Runtime Access
 ```ts
@@ -232,3 +232,22 @@ Tokens defined with `@theme {}` syntax. Never use raw hex values in components �
 - **`@theme {}`** — Defines color tokens in `src/styles/global.css`. Not `extend.colors`.
 - **`src/env.d.ts`** — Declares `App.Locals extends Runtime<CloudflareEnv>` for D1/env typing.
 - **Payments** — Manual logging only (cash, check, Venmo, Zelle). No payment processor. No credit cards. Ever.
+
+---
+
+## Session Protocol
+
+Before responding to any planning question, feature request, or "what's next" prompt — stop and ask:
+
+> "Is the previous task fully captured? (CLAUDE.md current, changelog.md updated, no loose threads)"
+
+Wait for confirmation before proceeding.
+
+At the end of every session, before anything else, run this closing checklist:
+
+- [ ] CLAUDE.md reflects current state
+- [ ] `docs/database.md`, `docs/architecture.md` updated if schema or routes changed
+- [ ] `docs/changelog.md` has an entry for anything shipped
+- [ ] No production tasks left undone (migrations, cleanup commands, etc.)
+
+If the answer to any checklist item is **no** — fix it before moving on. Do not skip this.
