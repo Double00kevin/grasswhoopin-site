@@ -21,18 +21,42 @@ Browser
 ## Admin Dashboard Components
 
 ```
-src/layouts/AdminLayout.astro     — page shell, header, sticky nav
+src/layouts/AdminLayout.astro     — page shell, header, sticky nav (DO NOT TOUCH)
 src/components/AdminStats.astro   — metric cards (customers, cuts, revenue, total owed)
-src/components/CustomerRoster.astro — 2-col grid of customer cards with action buttons
-src/pages/admin.astro             — controller: auth, DB queries, flash params, composition
+src/components/CustomerRoster.astro — grouped customer+yard cards with action buttons
+src/pages/admin.astro             — controller: auth, DB queries, TypeScript grouping, flash params, composition
 ```
+
+### CustomerRoster.astro
+Accepts `customerGroups: CustomerGroup[]` prop. Each CustomerGroup contains:
+- Customer-level fields: `customer_id`, `customer_name`, `phone`, `customer_notes`
+- Nested `yards: YardGroup[]` — one entry per active yard
+
+Renders one customer block per customer with stacked yard cards inside.
+
+**Per-customer actions:** RECORD PAYMENT (at customer level), + ADD YARD (inline form), EDIT, DISCHARGE
+
+**Per-yard actions:** GRASSWHOOPED, EDIT YARD, REMOVE YARD
+
+### data-* Cross-Boundary Pattern
+Buttons in CustomerRoster.astro carry `data-*` attributes with IDs and field values.
+Event handlers (`querySelectorAll`) live in admin.astro's `<script>` block and read those attributes at click time.
+Never put JS event logic inside CustomerRoster.astro.
+
+### Modals (in admin.astro)
+- `#edit-customer-modal` — edits name, phone, notes via PUT `/api/customers?id=X`
+- `#edit-yard-modal` — edits label, address, frequency, quoted_price via PUT `/api/yards?id=X`
+
+---
 
 ## API Routes
 
 ```
-src/pages/api/customers.ts   — POST: add customer | PUT: edit | DELETE: discharge | PATCH: reinstate
-src/pages/api/cuts.ts        — POST: log a cut (GRASSWHOOPED)
-src/pages/api/payments.ts    — POST: record manual payment (cash/check/Venmo — NO card processing)
+src/pages/api/enlist.ts      — POST: create customer + first yard atomically → /admin?added=1
+src/pages/api/customers.ts   — PUT: edit name/phone/notes | DELETE: discharge | PATCH: reinstate
+src/pages/api/yards.ts       — POST: add yard | PUT: edit | DELETE: discharge | PATCH: reinstate
+src/pages/api/cuts.ts        — POST: log a cut by yard_id (GRASSWHOOPED) → /admin?whooped=1
+src/pages/api/payments.ts    — POST: record manual payment by customer_id (NO card processing)
 ```
 
 All API routes:
