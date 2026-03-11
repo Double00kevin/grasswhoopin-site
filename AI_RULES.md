@@ -62,8 +62,11 @@ without explicit instruction.
 
 These are documented in:
 
-docs/database.md  
+docs/database.md
 docs/auth.md
+
+**seed.sql is DEV ONLY.** Never run it with `--remote`. It targets the local Miniflare D1 only.
+Use `--local` flag exclusively: `npx wrangler d1 execute grasswhoopin-db --local --file=seed.sql`
 
 ---
 
@@ -97,8 +100,14 @@ components/
 pages/
   admin.astro
 
+pages/api/
+  customers.ts   — customer CRUD
+  cuts.ts        — log a cut (GRASSWHOOPED)
+  payments.ts    — record manual payment (NO card processing)
+
 Controller logic stays in pages.
 UI logic lives in components.
+API routes handle form POST actions only.
 
 ---
 

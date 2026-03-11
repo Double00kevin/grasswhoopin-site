@@ -4,47 +4,32 @@ interface Props {
   cutsMonth: number;
   revenueMonth: number;
   revenueAll: number;
+  totalOwed: number;
 }
 
-const { totalCustomers, cutsMonth, revenueMonth, revenueAll } = Astro.props;
+const { totalCustomers, cutsMonth, revenueMonth, revenueAll, totalOwed } = Astro.props;
 ---
 
-<section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+<section class="grid grid-cols-2 sm:grid-cols-4 gap-4">
 
-  <div class="bg-olive border border-camo rounded-lg p-4 text-center">
-    <div class="condensed text-2xl font-black text-screaming">
-      {totalCustomers}
-    </div>
-    <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">
-      Active Recruits
-    </div>
+  <div class="bg-olive border border-camo border-l-4 border-l-screaming rounded-lg p-4">
+    <div class="text-xs text-gray-400 tracking-widest uppercase mb-1">Active Customers</div>
+    <div class="condensed text-3xl font-black text-screaming">{totalCustomers}</div>
   </div>
 
-  <div class="bg-olive border border-camo rounded-lg p-4 text-center">
-    <div class="condensed text-2xl font-black text-deere">
-      {cutsMonth}
-    </div>
-    <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">
-      Cuts This Month
-    </div>
+  <div class="bg-olive border border-camo border-l-4 border-l-deere rounded-lg p-4">
+    <div class="text-xs text-gray-400 tracking-widest uppercase mb-1">Yards Cut This Month</div>
+    <div class="condensed text-3xl font-black text-deere">{cutsMonth}</div>
   </div>
 
-  <div class="bg-olive border border-camo rounded-lg p-4 text-center">
-    <div class="condensed text-2xl font-black text-deere">
-      ${revenueMonth.toFixed(2)}
-    </div>
-    <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">
-      Revenue This Month
-    </div>
+  <div class="bg-olive border border-camo border-l-4 border-l-deere rounded-lg p-4">
+    <div class="text-xs text-gray-400 tracking-widest uppercase mb-1">Revenue This Month</div>
+    <div class="condensed text-3xl font-black text-deere">${revenueMonth.toFixed(2)}</div>
   </div>
 
-  <div class="bg-olive border border-camo rounded-lg p-4 text-center">
-    <div class="condensed text-2xl font-black text-screaming">
-      ${revenueAll.toFixed(2)}
-    </div>
-    <div class="text-xs text-gray-500 tracking-widest uppercase mt-1">
-      Revenue All-Time
-    </div>
+  <div class="bg-olive border border-camo border-l-4 border-l-rust rounded-lg p-4">
+    <div class="text-xs text-gray-400 tracking-widest uppercase mb-1">Total Owed</div>
+    <div class="condensed text-3xl font-black text-rust">${totalOwed.toFixed(2)}</div>
   </div>
 
 </section>

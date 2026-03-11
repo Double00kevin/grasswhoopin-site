@@ -47,23 +47,27 @@ interface DischargedRow {
   frequency: string;
 }
 
-const [monthStatsRes, allTimeStatsRes, monthCutsRes] = await db.batch([
+const [monthStatsRes, allTimeStatsRes, monthCutsRes, totalOwedRes] = await db.batch([
   db.prepare(`SELECT COALESCE(SUM(price), 0) as total FROM cuts WHERE strftime('%Y-%m', cut_date) = strftime('%Y-%m', 'now')`),
   db.prepare(`SELECT COALESCE(SUM(price), 0) as total FROM cuts`),
   db.prepare(`SELECT COUNT(*) as count FROM cuts WHERE strftime('%Y-%m', cut_date) = strftime('%Y-%m', 'now')`),
+  db.prepare(`SELECT (SELECT COALESCE(SUM(price), 0) FROM cuts) - (SELECT COALESCE(SUM(amount), 0) FROM payments) as owed`),
 ]);
-const revenueMonth = (monthStatsRes.results[0]  as any).total as number;
-const revenueAll   = (allTimeStatsRes.results[0] as any).total as number;
-const cutsMonth    = (monthCutsRes.results[0]    as any).count as number;
+let revenueMonth = (monthStatsRes.results[0]  as any).total as number;
+let revenueAll   = (allTimeStatsRes.results[0] as any).total as number;
+let cutsMonth    = (monthCutsRes.results[0]    as any).count as number;
+let totalOwed    = (totalOwedRes.results[0]    as any).owed  as number;
 
 const { results: discharged } = await db
   .prepare('SELECT id, name, address, frequency FROM customers WHERE active = 0 ORDER BY name')
   .all<DischargedRow>();
 
 const url = new URL(Astro.request.url);
-const justAdded  = url.searchParams.get('added');
+const justAdded   = url.searchParams.get('added');
 const justWhooped = url.searchParams.get('whooped');
-const hasError   = url.searchParams.get('error');
+const justPayment = url.searchParams.get('payment');
+const hasError    = url.searchParams.get('error');
+
 ---
 <!doctype html>
 <html lang="en">
@@ -108,6 +112,11 @@ const hasError   = url.searchParams.get('error');
           YARD HAS BEEN WHOOPED. OUTSTANDING.
         </div>
       )}
+      {justPayment && (
+        <div class="bg-screaming/10 border border-screaming text-screaming text-sm p-3 rounded text-center tracking-wide">
+          PAYMENT RECORDED. MONEY IN THE DIRT.
+        </div>
+      )}
       {hasError && (
         <div class="bg-rust/20 border border-rust text-rust text-sm p-3 rounded text-center tracking-wide">
           SOMETHING WENT WRONG. CHECK THE LOGS, SOLDIER.
@@ -119,6 +128,7 @@ const hasError   = url.searchParams.get('error');
         cutsMonth={cutsMonth}
         revenueMonth={revenueMonth}
         revenueAll={revenueAll}
+        totalOwed={totalOwed}
       />
 
       <!-- Enlist New Recruit -->

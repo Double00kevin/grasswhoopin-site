@@ -15,12 +15,17 @@ export const POST: APIRoute = async ({ request, cookies, locals, redirect }) => 
     return redirect('/admin?error=1', 303);
   }
 
-  const db = locals.runtime.env.grasswhoopin_db;
+  try {
+    const db = locals.runtime.env.grasswhoopin_db;
 
-  await db
-    .prepare('INSERT INTO cuts (customer_id, price, notes) VALUES (?, ?, ?)')
-    .bind(parseInt(customerId, 10), price, notes)
-    .run();
+    await db
+      .prepare('INSERT INTO cuts (customer_id, price, notes) VALUES (?, ?, ?)')
+      .bind(parseInt(customerId, 10), price, notes)
+      .run();
 
-  return redirect('/admin?whooped=1', 303);
+    return redirect('/admin?whooped=1', 303);
+  } catch (err) {
+    console.error('[/api/cuts] POST error:', err);
+    return redirect('/admin?error=1', 303);
+  }
 };

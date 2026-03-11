@@ -37,12 +37,12 @@ const { customers, discharged } = Astro.props;
 {customers.length === 0 ? (
   <p class="text-gray-500 italic text-sm">No recruits on the rolls yet. Enlist your first one above.</p>
 ) : (
-  <div class="space-y-3">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     {customers.map((c) => (
-      <div id={`recruit-${c.id}`} class="bg-olive border border-camo rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-        <div class="flex-1 min-w-0">
-          <div class="flex flex-wrap items-center gap-2 mb-1">
-            <span class="condensed recruit-name text-lg font-bold text-white tracking-wide">{c.name}</span>
+      <div id={`recruit-${c.id}`} class="bg-olive border border-camo border-l-4 border-l-screaming rounded-lg flex flex-col">
+        <div class="p-4 flex-1">
+          <div class="flex flex-wrap items-baseline gap-2 mb-2">
+            <span class="condensed recruit-name text-xl font-black text-white tracking-wide">{c.name}</span>
             <span class="recruit-freq text-xs text-gray-500 border border-camo rounded px-2 py-0.5 uppercase tracking-wider">
               {c.frequency}
             </span>
@@ -52,10 +52,12 @@ const { customers, discharged } = Astro.props;
               </span>
             )}
           </div>
-          <div class="recruit-address text-sm text-gray-400">{c.address}</div>
-          {c.phone && <div class="recruit-phone text-sm text-gray-400">{c.phone}</div>}
-          {c.notes && <div class="recruit-notes text-xs text-gray-500 mt-0.5 italic">{c.notes}</div>}
-          <div class="text-xs mt-1.5">
+          <div class="space-y-0.5 mb-3">
+            <div class="recruit-address text-sm text-gray-400">{c.address}</div>
+            {c.phone && <div class="recruit-phone text-sm text-gray-400">{c.phone}</div>}
+            {c.notes && <div class="recruit-notes text-xs text-gray-500 italic">{c.notes}</div>}
+          </div>
+          <div class="text-xs border-t border-camo/50 pt-2">
             {c.last_cut
               ? <span class="text-screaming">
                   Last whooped: {c.last_cut}
@@ -66,44 +68,52 @@ const { customers, discharged } = Astro.props;
             }
           </div>
         </div>
-        <div class="shrink-0 flex flex-col gap-2 items-stretch">
-          <form method="POST" action="/api/cuts" class="flex flex-col gap-1.5">
+        <div class="border-t border-camo p-3 space-y-2">
+          <form method="POST" action="/api/cuts">
             <input type="hidden" name="customer_id" value={c.id} />
-            <div class="flex items-center bg-army border border-camo rounded overflow-hidden text-sm focus-within:border-deere transition-colors">
+            <button
+              type="submit"
+              class="condensed w-full bg-screaming text-army font-black py-2 px-4 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
+            >
+              GRASSWHOOPED
+            </button>
+          </form>
+          {/* MANUAL PAYMENT LOGGING ONLY — cash/check/Venmo only. NO payment processor, NO credit cards */}
+          <form method="POST" action="/api/payments" class="flex gap-2">
+            <input type="hidden" name="customer_id" value={c.id} />
+            <div class="flex items-center bg-army border border-camo rounded overflow-hidden text-sm focus-within:border-rust transition-colors flex-1">
               <span class="px-2 text-gray-500 select-none">$</span>
               <input
-                type="number" name="price" min="0" step="0.01" placeholder="0.00"
+                type="number" name="amount" min="0" step="0.01" placeholder="0.00"
                 class="w-full bg-transparent py-1.5 pr-2 text-white focus:outline-none"
               />
             </div>
             <button
               type="submit"
-              class="condensed w-full bg-screaming text-army font-black py-2 px-5 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
+              class="condensed bg-rust text-white font-black py-1.5 px-4 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
             >
-              GRASSWHOOPED
+              RECORD PAYMENT
             </button>
           </form>
-          <button
-            type="button"
-            class="condensed edit-btn text-xs text-deere border border-camo rounded px-3 py-1.5 hover:border-deere transition-colors tracking-widest uppercase"
-            data-id={String(c.id)}
-            data-name={c.name}
-            data-address={c.address}
-            data-phone={c.phone ?? ''}
-            data-frequency={c.frequency}
-            data-quoted_price={c.quoted_price != null ? String(c.quoted_price) : ''}
-            data-notes={c.notes ?? ''}
-          >
-            EDIT
-          </button>
-          <button
-            type="button"
-            class="condensed discharge-btn text-xs text-gray-500 border border-camo rounded px-3 py-1.5 hover:border-rust hover:text-rust transition-colors tracking-widest uppercase"
-            data-id={String(c.id)}
-            data-name={c.name}
-          >
-            DISCHARGE
-          </button>
+          <div class="flex gap-2">
+            <button type="button"
+              class="condensed edit-btn flex-1 text-xs text-deere border border-camo rounded px-3 py-1.5 hover:border-deere transition-colors tracking-widest uppercase"
+              data-id={String(c.id)}
+              data-name={c.name}
+              data-address={c.address}
+              data-phone={c.phone ?? ''}
+              data-frequency={c.frequency}
+              data-quoted_price={c.quoted_price != null ? String(c.quoted_price) : ''}
+              data-notes={c.notes ?? ''}>
+              EDIT
+            </button>
+            <button type="button"
+              class="condensed discharge-btn text-xs text-gray-600 border border-camo/50 rounded px-3 py-1.5 hover:border-rust hover:text-rust transition-colors tracking-widest uppercase"
+              data-id={String(c.id)}
+              data-name={c.name}>
+              DISCHARGE
+            </button>
+          </div>
         </div>
       </div>
     ))}

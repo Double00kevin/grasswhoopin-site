@@ -54,8 +54,9 @@ Run from the project root:
 │   │   ├── admin/
 │   │   │   └── logout.ts        — GET: clears admin cookie, redirects to /login
 │   │   └── api/
-│   │       ├── customers.ts     — POST: add customer | DELETE: remove customer + cuts
-│   │       └── cuts.ts          — POST: log a grass cut for a customer
+│   │       ├── customers.ts     — POST: add customer | PUT: edit | DELETE: discharge | PATCH: reinstate
+│   │       ├── cuts.ts          — POST: log a grass cut (GRASSWHOOPED)
+│   │       └── payments.ts      — POST: record manual payment (cash/check/Venmo — no card processing)
 │   ├── styles/
 │   │   └── global.css           — Tailwind v4 import + @theme color tokens
 │   └── env.d.ts                 — TypeScript types for CloudflareEnv, D1Database, App.Locals
@@ -110,13 +111,27 @@ All sections are currently implemented inline in `src/pages/index.astro`. The st
 
 ## Deployment
 
-Deployed to **Cloudflare Workers** via `wrangler.jsonc`.
+Auto-deployed to **Cloudflare Pages** via GitHub. Push to `main` → Cloudflare builds and deploys automatically (~1-2 min).
+
+```sh
+npm run build          # verify zero errors first
+git add -A && git commit -m "update" && git push
+```
 
 - **Worker name:** `grasswhoopin-site`
 - **D1 binding:** `grasswhoopin_db` → database `grasswhoopin-db`
 - **Compatibility flags:** `nodejs_compat`, `global_fetch_strictly_public`
 - **Required production secret:** `ADMIN_PASSWORD` — set via `npx wrangler secret put ADMIN_PASSWORD`
 - **Local dev vars:** stored in `.dev.vars` (not tracked by git)
+
+### Local Dev Database Setup (run once)
+
+```sh
+npx wrangler d1 execute grasswhoopin-db --local --file=schema.sql
+npx wrangler d1 execute grasswhoopin-db --local --file=seed.sql
+```
+
+> **WARNING:** Never run `seed.sql` with `--remote`. That targets the live production database.
 
 ---
 
@@ -132,11 +147,12 @@ Password-protected crew management panel. All admin routes require a valid `gw_a
 | `/api/customers`   | POST   | Add new customer (name, address, phone, frequency, quoted_price) |
 | `/api/customers`   | PUT    | Edit existing customer fields (`?id=X`)              |
 | `/api/customers`   | DELETE | Remove customer + all associated cuts (`?id=X`)      |
-| `/api/cuts`        | POST   | Log a grass cut for a customer (with optional price) |
+| `/api/cuts`        | POST   | Log a grass cut (GRASSWHOOPED button — one-click)    |
+| `/api/payments`    | POST   | Record manual payment — cash/check/Venmo/Zelle only (NO card processing) |
 
 **Cookie:** `gw_admin=authorized` — httpOnly, secure, sameSite strict, 7-day maxAge
 
-**Flash messages** via URL params: `?added=1` (new recruit), `?whooped=1` (cut logged), `?error=1`
+**Flash messages** via URL params: `?added=1` (new recruit), `?whooped=1` (cut logged), `?payment=1` (payment recorded), `?error=1`
 
 ---
 
