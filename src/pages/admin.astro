@@ -1,6 +1,5 @@
 ---
 import '../styles/global.css';
-import AdminLayout from '../layouts/AdminLayout.astro';
 import AdminStats from '../components/AdminStats.astro';
 import CustomerRoster from '../components/CustomerRoster.astro';
 
@@ -11,40 +10,88 @@ if (cookie?.value !== 'authorized') {
 
 const db = Astro.locals.runtime.env.grasswhoopin_db;
 
-interface CustomerRow {
-  id: number;
-  name: string;
-  address: string;
+interface RosterRow {
+  customer_id: number;
+  customer_name: string;
   phone: string | null;
-  frequency: string;
+  customer_notes: string | null;
+  yard_id: number | null;
+  label: string | null;
+  address: string | null;
+  frequency: string | null;
   quoted_price: number | null;
-  notes: string | null;
-  created_at: string;
   last_cut: string | null;
   last_price: number | null;
   total_cuts: number;
 }
 
-const { results: customers } = await db
+interface YardGroup {
+  yard_id: number;
+  label: string | null;
+  address: string;
+  frequency: string;
+  quoted_price: number | null;
+  last_cut: string | null;
+  last_price: number | null;
+  total_cuts: number;
+}
+
+export interface CustomerGroup {
+  customer_id: number;
+  customer_name: string;
+  phone: string | null;
+  customer_notes: string | null;
+  yards: YardGroup[];
+}
+
+const { results: rosterRows } = await db
   .prepare(`
     SELECT
-      c.*,
-      MAX(cu.cut_date) AS last_cut,
-      COUNT(cu.id) AS total_cuts,
-      (SELECT price FROM cuts WHERE customer_id = c.id ORDER BY cut_date DESC, id DESC LIMIT 1) AS last_price
+      c.id as customer_id, c.name as customer_name, c.phone, c.notes as customer_notes,
+      y.id as yard_id, y.label, y.address, y.frequency, y.quoted_price,
+      MAX(cu.cut_date) as last_cut,
+      COUNT(cu.id) as total_cuts,
+      (SELECT price FROM cuts WHERE yard_id = y.id ORDER BY cut_date DESC, id DESC LIMIT 1) as last_price
     FROM customers c
-    LEFT JOIN cuts cu ON cu.customer_id = c.id
+    LEFT JOIN yards y ON y.customer_id = c.id AND y.active = 1
+    LEFT JOIN cuts cu ON cu.yard_id = y.id
     WHERE c.active = 1
-    GROUP BY c.id
-    ORDER BY c.name
+    GROUP BY c.id, y.id
+    ORDER BY c.name, y.id
   `)
-  .all<CustomerRow>();
+  .all<RosterRow>();
+
+// Group flat rows into CustomerGroup[]
+const customerGroupMap = new Map<number, CustomerGroup>();
+for (const row of rosterRows) {
+  if (!customerGroupMap.has(row.customer_id)) {
+    customerGroupMap.set(row.customer_id, {
+      customer_id: row.customer_id,
+      customer_name: row.customer_name,
+      phone: row.phone,
+      customer_notes: row.customer_notes,
+      yards: [],
+    });
+  }
+  if (row.yard_id !== null) {
+    customerGroupMap.get(row.customer_id)!.yards.push({
+      yard_id: row.yard_id,
+      label: row.label,
+      address: row.address!,
+      frequency: row.frequency ?? 'weekly',
+      quoted_price: row.quoted_price,
+      last_cut: row.last_cut,
+      last_price: row.last_price,
+      total_cuts: row.total_cuts,
+    });
+  }
+}
+const customerGroups = Array.from(customerGroupMap.values());
 
 interface DischargedRow {
   id: number;
   name: string;
-  address: string;
-  frequency: string;
+  phone: string | null;
 }
 
 const [monthStatsRes, allTimeStatsRes, monthCutsRes, totalOwedRes] = await db.batch([
@@ -59,7 +106,7 @@ let cutsMonth    = (monthCutsRes.results[0]    as any).count as number;
 let totalOwed    = (totalOwedRes.results[0]    as any).owed  as number;
 
 const { results: discharged } = await db
-  .prepare('SELECT id, name, address, frequency FROM customers WHERE active = 0 ORDER BY name')
+  .prepare('SELECT id, name, phone FROM customers WHERE active = 0 ORDER BY name')
   .all<DischargedRow>();
 
 const url = new URL(Astro.request.url);
@@ -67,7 +114,6 @@ const justAdded   = url.searchParams.get('added');
 const justWhooped = url.searchParams.get('whooped');
 const justPayment = url.searchParams.get('payment');
 const hasError    = url.searchParams.get('error');
-
 ---
 <!doctype html>
 <html lang="en">
@@ -124,7 +170,7 @@ const hasError    = url.searchParams.get('error');
       )}
 
       <AdminStats
-        totalCustomers={customers.length}
+        totalCustomers={customerGroups.length}
         cutsMonth={cutsMonth}
         revenueMonth={revenueMonth}
         revenueAll={revenueAll}
@@ -138,74 +184,95 @@ const hasError    = url.searchParams.get('error');
         </h2>
         <form
           method="POST"
-          action="/api/customers"
-          class="bg-olive border border-camo rounded-lg p-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
+          action="/api/enlist"
+          class="bg-olive border border-camo rounded-lg p-6 space-y-5"
         >
+          <!-- Billing Customer -->
           <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="name">Name *</label>
-            <input
-              type="text" name="name" id="name" required
-              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
-            />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="phone">Phone</label>
-            <input
-              type="tel" name="phone" id="phone"
-              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
-            />
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="address">Address *</label>
-            <input
-              type="text" name="address" id="address" required
-              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
-            />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="frequency">Frequency</label>
-            <select
-              name="frequency" id="frequency"
-              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
-            >
-              <option value="weekly">Weekly</option>
-              <option value="bi-weekly">Bi-Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="one-time">One-Time</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="quoted_price">Quoted Price</label>
-            <div class="flex items-center bg-army border border-camo rounded overflow-hidden focus-within:border-deere transition-colors">
-              <span class="px-2 text-gray-500 select-none text-sm">$</span>
-              <input
-                type="number" name="quoted_price" id="quoted_price" min="0" step="0.01" placeholder="0.00"
-                class="w-full bg-transparent py-2 pr-3 text-white focus:outline-none text-sm"
-              />
+            <p class="text-xs text-gray-500 tracking-widest uppercase mb-3 font-bold border-b border-camo pb-2">
+              Billing Contact
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="name">Name *</label>
+                <input
+                  type="text" name="name" id="name" required
+                  class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="phone">Phone</label>
+                <input
+                  type="tel" name="phone" id="phone"
+                  class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+                />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="customer_notes">Notes</label>
+                <input
+                  type="text" name="customer_notes" id="customer_notes"
+                  class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+                />
+              </div>
             </div>
           </div>
+
+          <!-- First Yard -->
           <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="notes">Notes</label>
-            <input
-              type="text" name="notes" id="notes"
-              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
-            />
-          </div>
-          <div class="sm:col-span-2">
-            <button
-              type="submit"
-              class="condensed bg-deere text-army font-black py-2 px-6 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
-            >
-              ENLIST RECRUIT
-            </button>
+            <p class="text-xs text-gray-500 tracking-widest uppercase mb-3 font-bold border-b border-camo pb-2">
+              First Yard
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="sm:col-span-2">
+                <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="address">Address *</label>
+                <input
+                  type="text" name="address" id="address" required
+                  class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="label">Label</label>
+                <input
+                  type="text" name="label" id="label" placeholder="e.g. Home, Rental"
+                  class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="frequency">Frequency</label>
+                <select
+                  name="frequency" id="frequency"
+                  class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+                >
+                  <option value="weekly">Weekly</option>
+                  <option value="bi-weekly">Bi-Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="one-time">One-Time</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="quoted_price">Quoted Price</label>
+                <div class="flex items-center bg-army border border-camo rounded overflow-hidden focus-within:border-deere transition-colors">
+                  <span class="px-2 text-gray-500 select-none text-sm">$</span>
+                  <input
+                    type="number" name="quoted_price" id="quoted_price" min="0" step="0.01" placeholder="0.00"
+                    class="w-full bg-transparent py-2 pr-3 text-white focus:outline-none text-sm"
+                  />
+                </div>
+              </div>
+              <div class="sm:col-span-2">
+                <button
+                  type="submit"
+                  class="condensed bg-deere text-army font-black py-2 px-6 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
+                >
+                  ENLIST RECRUIT
+                </button>
+              </div>
+            </div>
           </div>
         </form>
       </section>
 
-      <CustomerRoster
-        customers={customers}
-        discharged={discharged}
-      />
+      <CustomerRoster customerGroups={customerGroups} />
 
       <!-- Discharged Roster -->
       {discharged.length > 0 && (
@@ -224,11 +291,8 @@ const hasError    = url.searchParams.get('error');
               {discharged.map((c) => (
                 <div id={`discharged-${c.id}`} class="bg-olive border border-camo/50 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-4 opacity-60">
                   <div class="flex-1 min-w-0">
-                    <div class="flex flex-wrap items-center gap-2 mb-1">
-                      <span class="condensed text-lg font-bold text-gray-400 tracking-wide">{c.name}</span>
-                      <span class="text-xs text-gray-600 border border-camo/50 rounded px-2 py-0.5 uppercase tracking-wider">{c.frequency}</span>
-                    </div>
-                    <div class="text-sm text-gray-600">{c.address}</div>
+                    <span class="condensed text-lg font-bold text-gray-400 tracking-wide">{c.name}</span>
+                    {c.phone && <div class="text-sm text-gray-600">{c.phone}</div>}
                   </div>
                   <button
                     type="button"
@@ -247,51 +311,93 @@ const hasError    = url.searchParams.get('error');
 
     </main>
 
-    <!-- Edit Recruit Modal -->
+    <!-- Edit Customer Modal -->
     <div
-      id="edit-modal"
+      id="edit-customer-modal"
       class="fixed inset-0 z-50 hidden items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="edit-modal-title"
     >
-      <!-- Backdrop -->
-      <div id="edit-backdrop" class="absolute inset-0 bg-black/70"></div>
-
-      <!-- Panel -->
-      <div class="relative w-full max-w-lg bg-olive border border-camo rounded-lg p-6 shadow-xl">
-        <h2 id="edit-modal-title" class="condensed text-xl font-black text-deere tracking-widest uppercase mb-5">
+      <div id="edit-customer-backdrop" class="absolute inset-0 bg-black/70"></div>
+      <div class="relative w-full max-w-md bg-olive border border-camo rounded-lg p-6 shadow-xl">
+        <h2 class="condensed text-xl font-black text-deere tracking-widest uppercase mb-5">
           AMEND RECRUIT
         </h2>
-
-        <form id="edit-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input type="hidden" id="edit-id" name="id" />
-
-          <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-name">Name *</label>
-            <input
-              type="text" id="edit-name" name="name" required
-              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
-            />
-          </div>
-          <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-phone">Phone</label>
-            <input
-              type="tel" id="edit-phone" name="phone"
-              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
-            />
-          </div>
+        <form id="edit-customer-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <input type="hidden" id="edit-customer-id" name="id" />
           <div class="sm:col-span-2">
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-address">Address *</label>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-customer-name">Name *</label>
             <input
-              type="text" id="edit-address" name="address" required
+              type="text" id="edit-customer-name" name="name" required
               class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
             />
           </div>
           <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-frequency">Frequency</label>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-customer-phone">Phone</label>
+            <input
+              type="tel" id="edit-customer-phone" name="phone"
+              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-customer-notes">Notes</label>
+            <input
+              type="text" id="edit-customer-notes" name="notes"
+              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+            />
+          </div>
+          <div class="sm:col-span-2 flex gap-3 pt-1">
+            <button
+              type="submit"
+              class="condensed flex-1 bg-deere text-army font-black py-2 px-6 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
+            >
+              SAVE CHANGES
+            </button>
+            <button
+              type="button"
+              id="edit-customer-cancel"
+              class="condensed flex-1 text-gray-400 border border-camo rounded py-2 px-6 tracking-widest uppercase text-sm hover:border-gray-400 transition-colors"
+            >
+              STAND DOWN
+            </button>
+          </div>
+        </form>
+        <p id="edit-customer-error" class="hidden text-rust text-xs mt-3 tracking-wide">Failed to save. Try again, soldier.</p>
+      </div>
+    </div>
+
+    <!-- Edit Yard Modal -->
+    <div
+      id="edit-yard-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div id="edit-yard-backdrop" class="absolute inset-0 bg-black/70"></div>
+      <div class="relative w-full max-w-md bg-olive border border-camo rounded-lg p-6 shadow-xl">
+        <h2 class="condensed text-xl font-black text-deere tracking-widest uppercase mb-5">
+          AMEND YARD
+        </h2>
+        <form id="edit-yard-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <input type="hidden" id="edit-yard-id" name="id" />
+          <div class="sm:col-span-2">
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-yard-address">Address *</label>
+            <input
+              type="text" id="edit-yard-address" name="address" required
+              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-yard-label">Label</label>
+            <input
+              type="text" id="edit-yard-label" name="label" placeholder="e.g. Home, Rental"
+              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-yard-frequency">Frequency</label>
             <select
-              id="edit-frequency" name="frequency"
+              id="edit-yard-frequency" name="frequency"
               class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
             >
               <option value="weekly">Weekly</option>
@@ -301,24 +407,16 @@ const hasError    = url.searchParams.get('error');
             </select>
           </div>
           <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-quoted_price">Quoted Price</label>
+            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-yard-quoted_price">Quoted Price</label>
             <div class="flex items-center bg-army border border-camo rounded overflow-hidden focus-within:border-deere transition-colors">
               <span class="px-2 text-gray-500 select-none text-sm">$</span>
               <input
-                type="number" id="edit-quoted_price" name="quoted_price" min="0" step="0.01" placeholder="0.00"
+                type="number" id="edit-yard-quoted_price" name="quoted_price" min="0" step="0.01" placeholder="0.00"
                 class="w-full bg-transparent py-2 pr-3 text-white focus:outline-none text-sm"
               />
             </div>
           </div>
-          <div>
-            <label class="block text-xs text-gray-400 tracking-widest uppercase mb-1" for="edit-notes">Notes</label>
-            <input
-              type="text" id="edit-notes" name="notes"
-              class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
-            />
-          </div>
-
-          <div class="sm:col-span-2 flex flex-col sm:flex-row gap-3 pt-1">
+          <div class="sm:col-span-2 flex gap-3 pt-1">
             <button
               type="submit"
               class="condensed flex-1 bg-deere text-army font-black py-2 px-6 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
@@ -327,15 +425,14 @@ const hasError    = url.searchParams.get('error');
             </button>
             <button
               type="button"
-              id="edit-cancel"
+              id="edit-yard-cancel"
               class="condensed flex-1 text-gray-400 border border-camo rounded py-2 px-6 tracking-widest uppercase text-sm hover:border-gray-400 transition-colors"
             >
               STAND DOWN
             </button>
           </div>
         </form>
-
-        <p id="edit-error" class="hidden text-rust text-xs mt-3 tracking-wide">Failed to save. Try again, soldier.</p>
+        <p id="edit-yard-error" class="hidden text-rust text-xs mt-3 tracking-wide">Failed to save. Try again, soldier.</p>
       </div>
     </div>
 
@@ -345,140 +442,163 @@ const hasError    = url.searchParams.get('error');
         btn.addEventListener('click', async () => {
           const { id, name = 'this recruit' } = btn.dataset;
           if (!confirm(`Reinstate ${name} to active roster?`)) return;
-
           const res = await fetch(`/api/customers?id=${id}`, { method: 'PATCH' });
-          if (res.ok) {
-            document.getElementById(`discharged-${id}`)?.remove();
-            window.location.reload();
-          } else {
-            alert('Failed to reinstate. Check the logs.');
-          }
+          if (res.ok) window.location.reload();
+          else alert('Failed to reinstate. Check the logs.');
         });
       });
 
-      // --- Discharge ---
-      document.querySelectorAll<HTMLButtonElement>('.discharge-btn').forEach((btn) => {
+      // --- Discharge Customer ---
+      document.querySelectorAll<HTMLButtonElement>('.discharge-customer-btn').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          const { id, name = 'this recruit' } = btn.dataset;
-          if (!confirm(`DISCHARGE ${name.toUpperCase()} from the rolls?\n\nThis removes their full cut history. No take-backs.`)) return;
-
+          const { id, name = 'this customer' } = btn.dataset;
+          if (!confirm(`DISCHARGE ${name.toUpperCase()} from the rolls?\n\nThis discharges the customer and all their yards.`)) return;
           const res = await fetch(`/api/customers?id=${id}`, { method: 'DELETE' });
-          if (res.ok) {
-            document.getElementById(`recruit-${id}`)?.remove();
-          } else {
-            alert('Failed to discharge recruit. Check the logs.');
-          }
+          if (res.ok) document.getElementById(`customer-${id}`)?.remove();
+          else alert('Failed to discharge. Check the logs.');
         });
       });
 
-      // --- Edit modal ---
-      const modal     = document.getElementById('edit-modal')!;
-      const backdrop  = document.getElementById('edit-backdrop')!;
-      const form      = document.getElementById('edit-form') as HTMLFormElement;
-      const cancelBtn = document.getElementById('edit-cancel')!;
-      const errMsg    = document.getElementById('edit-error')!;
-
-      function openModal(btn: HTMLButtonElement) {
-        const { id, name, address, phone, frequency, quoted_price, notes } = btn.dataset;
-        (document.getElementById('edit-id')           as HTMLInputElement).value = id ?? '';
-        (document.getElementById('edit-name')         as HTMLInputElement).value = name ?? '';
-        (document.getElementById('edit-address')      as HTMLInputElement).value = address ?? '';
-        (document.getElementById('edit-phone')        as HTMLInputElement).value = phone ?? '';
-        (document.getElementById('edit-quoted_price') as HTMLInputElement).value = quoted_price ?? '';
-        (document.getElementById('edit-notes')        as HTMLInputElement).value = notes ?? '';
-        const sel = document.getElementById('edit-frequency') as HTMLSelectElement;
-        sel.value = frequency ?? 'weekly';
-        errMsg.classList.add('hidden');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        (document.getElementById('edit-name') as HTMLInputElement).focus();
-      }
-
-      function closeModal() {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-      }
-
-      document.querySelectorAll<HTMLButtonElement>('.edit-btn').forEach((btn) => {
-        btn.addEventListener('click', () => openModal(btn));
+      // --- Discharge Yard ---
+      document.querySelectorAll<HTMLButtonElement>('.discharge-yard-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const { id } = btn.dataset;
+          if (!confirm('Remove this yard from the active roster?')) return;
+          const res = await fetch(`/api/yards?id=${id}`, { method: 'DELETE' });
+          if (res.ok) document.getElementById(`yard-${id}`)?.remove();
+          else alert('Failed to remove yard. Check the logs.');
+        });
       });
 
-      cancelBtn.addEventListener('click', closeModal);
-      backdrop.addEventListener('click', closeModal);
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+      // --- Edit Customer Modal ---
+      const customerModal    = document.getElementById('edit-customer-modal')!;
+      const customerBackdrop = document.getElementById('edit-customer-backdrop')!;
+      const customerForm     = document.getElementById('edit-customer-form') as HTMLFormElement;
+      const customerCancel   = document.getElementById('edit-customer-cancel')!;
+      const customerError    = document.getElementById('edit-customer-error')!;
 
-      form.addEventListener('submit', async (e) => {
+      function openCustomerModal(btn: HTMLButtonElement) {
+        const { id, name, phone, notes } = btn.dataset;
+        (document.getElementById('edit-customer-id')    as HTMLInputElement).value = id    ?? '';
+        (document.getElementById('edit-customer-name')  as HTMLInputElement).value = name  ?? '';
+        (document.getElementById('edit-customer-phone') as HTMLInputElement).value = phone ?? '';
+        (document.getElementById('edit-customer-notes') as HTMLInputElement).value = notes ?? '';
+        customerError.classList.add('hidden');
+        customerModal.classList.remove('hidden');
+        customerModal.classList.add('flex');
+        (document.getElementById('edit-customer-name') as HTMLInputElement).focus();
+      }
+
+      function closeCustomerModal() {
+        customerModal.classList.add('hidden');
+        customerModal.classList.remove('flex');
+      }
+
+      document.querySelectorAll<HTMLButtonElement>('.edit-customer-btn').forEach((btn) => {
+        btn.addEventListener('click', () => openCustomerModal(btn));
+      });
+      customerCancel.addEventListener('click', closeCustomerModal);
+      customerBackdrop.addEventListener('click', closeCustomerModal);
+
+      customerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        errMsg.classList.add('hidden');
+        customerError.classList.add('hidden');
+        const id   = (document.getElementById('edit-customer-id') as HTMLInputElement).value;
+        const data = new FormData(customerForm);
+        const res  = await fetch(`/api/customers?id=${id}`, { method: 'PUT', body: data });
+        if (!res.ok) { customerError.classList.remove('hidden'); return; }
 
-        const id = (document.getElementById('edit-id') as HTMLInputElement).value;
-        const data = new FormData(form);
+        const block = document.getElementById(`customer-${id}`);
+        if (block) {
+          const name  = data.get('name')?.toString()  ?? '';
+          const phone = data.get('phone')?.toString() ?? '';
+          const notes = data.get('notes')?.toString() ?? '';
 
-        const res = await fetch(`/api/customers?id=${id}`, { method: 'PUT', body: data });
+          const nameEl = block.querySelector<HTMLElement>('.customer-name');
+          if (nameEl) nameEl.textContent = name;
+          const phoneEl = block.querySelector<HTMLElement>('.customer-phone');
+          if (phoneEl) phoneEl.textContent = phone;
+          const notesEl = block.querySelector<HTMLElement>('.customer-notes');
+          if (notesEl) notesEl.textContent = notes;
 
-        if (!res.ok) {
-          errMsg.classList.remove('hidden');
-          return;
-        }
-
-        // Update the roster card in place without a full reload
-        const card = document.getElementById(`recruit-${id}`);
-        if (card) {
-          const name         = data.get('name')?.toString() ?? '';
-          const address      = data.get('address')?.toString() ?? '';
-          const phone        = data.get('phone')?.toString() ?? '';
-          const frequency    = data.get('frequency')?.toString() ?? '';
-          const quotedRaw    = data.get('quoted_price')?.toString() ?? '';
-          const quoted_price = quotedRaw ? parseFloat(quotedRaw) : null;
-          const notes        = data.get('notes')?.toString() ?? '';
-
-          card.querySelector<HTMLElement>('.recruit-name')!.textContent = name;
-          card.querySelector<HTMLElement>('.recruit-address')!.textContent = address;
-
-          const phoneEl = card.querySelector<HTMLElement>('.recruit-phone');
-          if (phoneEl) phoneEl.textContent = phone || '';
-
-          const notesEl = card.querySelector<HTMLElement>('.recruit-notes');
-          if (notesEl) notesEl.textContent = notes || '';
-
-          const freqEl = card.querySelector<HTMLElement>('.recruit-freq');
-          if (freqEl) freqEl.textContent = frequency;
-
-          const quotedEl = card.querySelector<HTMLElement>('.recruit-quoted');
-          if (quoted_price != null) {
-            const label = `$${quoted_price.toFixed(2)}/cut`;
-            if (quotedEl) {
-              quotedEl.textContent = label;
-            } else {
-              // Badge didn't exist before — insert it after the freq badge
-              const freqBadge = card.querySelector('.recruit-freq');
-              if (freqBadge) {
-                const span = document.createElement('span');
-                span.className = 'recruit-quoted text-xs text-deere border border-deere/40 rounded px-2 py-0.5 tracking-wider';
-                span.textContent = label;
-                freqBadge.insertAdjacentElement('afterend', span);
-              }
-            }
-          } else if (quotedEl) {
-            quotedEl.remove();
-          }
-
-          // Keep edit-btn data attrs in sync for subsequent edits
-          const editBtn = card.querySelector<HTMLButtonElement>('.edit-btn');
-          if (editBtn) {
-            editBtn.dataset.name = name;
-            editBtn.dataset.address = address;
-            editBtn.dataset.phone = phone;
-            editBtn.dataset.frequency = frequency;
-            editBtn.dataset.quoted_price = quotedRaw;
-            editBtn.dataset.notes = notes;
-          }
-          // Keep discharge-btn name in sync
-          const dischargeBtn = card.querySelector<HTMLButtonElement>('.discharge-btn');
+          const editBtn = block.querySelector<HTMLButtonElement>('.edit-customer-btn');
+          if (editBtn) { editBtn.dataset.name = name; editBtn.dataset.phone = phone; editBtn.dataset.notes = notes; }
+          const dischargeBtn = block.querySelector<HTMLButtonElement>('.discharge-customer-btn');
           if (dischargeBtn) dischargeBtn.dataset.name = name;
         }
+        closeCustomerModal();
+      });
 
-        closeModal();
+      // --- Edit Yard Modal ---
+      const yardModal    = document.getElementById('edit-yard-modal')!;
+      const yardBackdrop = document.getElementById('edit-yard-backdrop')!;
+      const yardForm     = document.getElementById('edit-yard-form') as HTMLFormElement;
+      const yardCancel   = document.getElementById('edit-yard-cancel')!;
+      const yardError    = document.getElementById('edit-yard-error')!;
+
+      function openYardModal(btn: HTMLButtonElement) {
+        const { id, label, address, frequency, quoted_price } = btn.dataset;
+        (document.getElementById('edit-yard-id')           as HTMLInputElement).value = id            ?? '';
+        (document.getElementById('edit-yard-label')        as HTMLInputElement).value = label         ?? '';
+        (document.getElementById('edit-yard-address')      as HTMLInputElement).value = address       ?? '';
+        (document.getElementById('edit-yard-quoted_price') as HTMLInputElement).value = quoted_price  ?? '';
+        const sel = document.getElementById('edit-yard-frequency') as HTMLSelectElement;
+        sel.value = frequency ?? 'weekly';
+        yardError.classList.add('hidden');
+        yardModal.classList.remove('hidden');
+        yardModal.classList.add('flex');
+        (document.getElementById('edit-yard-address') as HTMLInputElement).focus();
+      }
+
+      function closeYardModal() {
+        yardModal.classList.add('hidden');
+        yardModal.classList.remove('flex');
+      }
+
+      document.querySelectorAll<HTMLButtonElement>('.edit-yard-btn').forEach((btn) => {
+        btn.addEventListener('click', () => openYardModal(btn));
+      });
+      yardCancel.addEventListener('click', closeYardModal);
+      yardBackdrop.addEventListener('click', closeYardModal);
+
+      yardForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        yardError.classList.add('hidden');
+        const id   = (document.getElementById('edit-yard-id') as HTMLInputElement).value;
+        const data = new FormData(yardForm);
+        const res  = await fetch(`/api/yards?id=${id}`, { method: 'PUT', body: data });
+        if (!res.ok) { yardError.classList.remove('hidden'); return; }
+
+        const yardEl = document.getElementById(`yard-${id}`);
+        if (yardEl) {
+          const label       = data.get('label')?.toString()        ?? '';
+          const address     = data.get('address')?.toString()      ?? '';
+          const frequency   = data.get('frequency')?.toString()    ?? '';
+          const quotedRaw   = data.get('quoted_price')?.toString() ?? '';
+          const quoted_price = quotedRaw ? parseFloat(quotedRaw) : null;
+
+          const labelEl = yardEl.querySelector<HTMLElement>('.yard-label');
+          if (labelEl) labelEl.textContent = label || 'Yard';
+          const addressEl = yardEl.querySelector<HTMLElement>('.yard-address');
+          if (addressEl) addressEl.textContent = address;
+          const freqEl = yardEl.querySelector<HTMLElement>('.yard-freq');
+          if (freqEl) freqEl.textContent = frequency;
+          const quotedEl = yardEl.querySelector<HTMLElement>('.yard-quoted');
+          if (quotedEl) quotedEl.textContent = quoted_price != null ? `$${quoted_price.toFixed(2)}/cut` : '';
+
+          const editBtn = yardEl.querySelector<HTMLButtonElement>('.edit-yard-btn');
+          if (editBtn) {
+            editBtn.dataset.label        = label;
+            editBtn.dataset.address      = address;
+            editBtn.dataset.frequency    = frequency;
+            editBtn.dataset.quoted_price = quotedRaw;
+          }
+        }
+        closeYardModal();
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { closeCustomerModal(); closeYardModal(); }
       });
     </script>
 

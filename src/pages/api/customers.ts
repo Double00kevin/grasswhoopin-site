@@ -1,117 +1,68 @@
 import type { APIRoute } from 'astro';
 
-export const DELETE: APIRoute = async ({ request, cookies, locals }) => {
-  if (cookies.get('gw_admin')?.value !== 'authorized') {
-    return new Response('Unauthorized', { status: 401 });
-  }
+function unauthorized() {
+  return new Response('Unauthorized', { status: 401 });
+}
 
-  const id = new URL(request.url).searchParams.get('id');
+function badRequest(msg: string) {
+  return new Response(JSON.stringify({ error: msg }), {
+    status: 400,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+function ok() {
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+export const DELETE: APIRoute = async ({ request, cookies, locals }) => {
+  if (cookies.get('gw_admin')?.value !== 'authorized') return unauthorized();
+
+  const id         = new URL(request.url).searchParams.get('id');
   const customerId = id ? parseInt(id, 10) : NaN;
-  if (!id || isNaN(customerId)) {
-    return new Response(JSON.stringify({ error: 'Missing or invalid id' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  if (!id || isNaN(customerId)) return badRequest('Missing or invalid id');
 
   const db = locals.runtime.env.grasswhoopin_db;
   await db.prepare('UPDATE customers SET active = 0 WHERE id = ?').bind(customerId).run();
 
-  return new Response(JSON.stringify({ ok: true }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
+  return ok();
 };
 
 export const PATCH: APIRoute = async ({ request, cookies, locals }) => {
-  if (cookies.get('gw_admin')?.value !== 'authorized') {
-    return new Response('Unauthorized', { status: 401 });
-  }
+  if (cookies.get('gw_admin')?.value !== 'authorized') return unauthorized();
 
-  const id = new URL(request.url).searchParams.get('id');
+  const id         = new URL(request.url).searchParams.get('id');
   const customerId = id ? parseInt(id, 10) : NaN;
-  if (!id || isNaN(customerId)) {
-    return new Response(JSON.stringify({ error: 'Missing or invalid id' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  if (!id || isNaN(customerId)) return badRequest('Missing or invalid id');
 
   const db = locals.runtime.env.grasswhoopin_db;
   await db.prepare('UPDATE customers SET active = 1 WHERE id = ?').bind(customerId).run();
 
-  return new Response(JSON.stringify({ ok: true }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
+  return ok();
 };
 
 export const PUT: APIRoute = async ({ request, cookies, locals }) => {
-  if (cookies.get('gw_admin')?.value !== 'authorized') {
-    return new Response('Unauthorized', { status: 401 });
-  }
+  if (cookies.get('gw_admin')?.value !== 'authorized') return unauthorized();
 
-  const id = new URL(request.url).searchParams.get('id');
+  const id         = new URL(request.url).searchParams.get('id');
   const customerId = id ? parseInt(id, 10) : NaN;
-  if (!id || isNaN(customerId)) {
-    return new Response(JSON.stringify({ error: 'Missing or invalid id' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  if (!id || isNaN(customerId)) return badRequest('Missing or invalid id');
 
-  const form = await request.formData();
-  const name         = form.get('name')?.toString().trim() ?? '';
-  const address      = form.get('address')?.toString().trim() ?? '';
-  const phone        = form.get('phone')?.toString().trim() || null;
-  const frequency    = form.get('frequency')?.toString() ?? 'weekly';
-  const quotedRaw    = form.get('quoted_price')?.toString().trim() || null;
-  const quoted_price = quotedRaw ? parseFloat(quotedRaw) : null;
-  const notes        = form.get('notes')?.toString().trim() || null;
+  const form  = await request.formData();
+  const name  = form.get('name')?.toString().trim() ?? '';
+  const phone = form.get('phone')?.toString().trim() || null;
+  const notes = form.get('notes')?.toString().trim() || null;
 
-  if (!name || !address) {
-    return new Response(JSON.stringify({ error: 'Name and address required' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  if (!name) return badRequest('Name required');
 
   const db = locals.runtime.env.grasswhoopin_db;
   await db
-    .prepare('UPDATE customers SET name = ?, address = ?, phone = ?, frequency = ?, quoted_price = ?, notes = ? WHERE id = ?')
-    .bind(name, address, phone, frequency, quoted_price, notes, customerId)
+    .prepare('UPDATE customers SET name = ?, phone = ?, notes = ? WHERE id = ?')
+    .bind(name, phone, notes, customerId)
     .run();
 
-  return new Response(JSON.stringify({ ok: true }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' },
-  });
-};
-
-export const POST: APIRoute = async ({ request, cookies, locals, redirect }) => {
-  if (cookies.get('gw_admin')?.value !== 'authorized') {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  const form = await request.formData();
-  const name         = form.get('name')?.toString().trim() ?? '';
-  const address      = form.get('address')?.toString().trim() ?? '';
-  const phone        = form.get('phone')?.toString().trim() || null;
-  const frequency    = form.get('frequency')?.toString() ?? 'weekly';
-  const quotedRaw    = form.get('quoted_price')?.toString().trim() || null;
-  const quoted_price = quotedRaw ? parseFloat(quotedRaw) : null;
-  const notes        = form.get('notes')?.toString().trim() || null;
-
-  if (!name || !address) {
-    return redirect('/admin?error=1', 303);
-  }
-
-  const db = locals.runtime.env.grasswhoopin_db;
-
-  await db
-    .prepare('INSERT INTO customers (name, address, phone, frequency, quoted_price, notes) VALUES (?, ?, ?, ?, ?, ?)')
-    .bind(name, address, phone, frequency, quoted_price, notes)
-    .run();
-
-  return redirect('/admin?added=1', 303);
+  return ok();
 };

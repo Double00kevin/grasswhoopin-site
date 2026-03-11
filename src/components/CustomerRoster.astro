@@ -1,123 +1,215 @@
 ---
-interface CustomerRow {
-  id: number;
-  name: string;
+interface YardGroup {
+  yard_id: number;
+  label: string | null;
   address: string;
-  phone: string | null;
   frequency: string;
   quoted_price: number | null;
-  notes: string | null;
-  created_at: string;
   last_cut: string | null;
   last_price: number | null;
   total_cuts: number;
 }
 
-interface DischargedRow {
-  id: number;
-  name: string;
-  address: string;
-  frequency: string;
+interface CustomerGroup {
+  customer_id: number;
+  customer_name: string;
+  phone: string | null;
+  customer_notes: string | null;
+  yards: YardGroup[];
 }
 
-const { customers, discharged } = Astro.props;
+const { customerGroups } = Astro.props as { customerGroups: CustomerGroup[] };
 ---
-
-<!-- Customer Roster Placeholder -->
 
 <section>
 
-<h2 class="text-xl font-black text-deere tracking-widest uppercase mb-4">
-  RECRUITS ROSTER
-  <span class="text-gray-500 font-normal text-base normal-case tracking-normal ml-2">
-    ({customers.length})
-  </span>
-</h2>
+  <h2 class="text-xl font-black text-deere tracking-widest uppercase mb-4">
+    RECRUITS ROSTER
+    <span class="text-gray-500 font-normal text-base normal-case tracking-normal ml-2">
+      ({customerGroups.length})
+    </span>
+  </h2>
 
-{customers.length === 0 ? (
-  <p class="text-gray-500 italic text-sm">No recruits on the rolls yet. Enlist your first one above.</p>
-) : (
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    {customers.map((c) => (
-      <div id={`recruit-${c.id}`} class="bg-olive border border-camo border-l-4 border-l-screaming rounded-lg flex flex-col">
-        <div class="p-4 flex-1">
-          <div class="flex flex-wrap items-baseline gap-2 mb-2">
-            <span class="condensed recruit-name text-xl font-black text-white tracking-wide">{c.name}</span>
-            <span class="recruit-freq text-xs text-gray-500 border border-camo rounded px-2 py-0.5 uppercase tracking-wider">
-              {c.frequency}
-            </span>
-            {c.quoted_price != null && (
-              <span class="recruit-quoted text-xs text-deere border border-deere/40 rounded px-2 py-0.5 tracking-wider">
-                ${c.quoted_price.toFixed(2)}/cut
-              </span>
-            )}
-          </div>
-          <div class="space-y-0.5 mb-3">
-            <div class="recruit-address text-sm text-gray-400">{c.address}</div>
-            {c.phone && <div class="recruit-phone text-sm text-gray-400">{c.phone}</div>}
-            {c.notes && <div class="recruit-notes text-xs text-gray-500 italic">{c.notes}</div>}
-          </div>
-          <div class="text-xs border-t border-camo/50 pt-2">
-            {c.last_cut
-              ? <span class="text-screaming">
-                  Last whooped: {c.last_cut}
-                  {c.last_price != null && <> &mdash; <span class="text-deere">${c.last_price.toFixed(2)}</span></>}
-                  {' '}&mdash; {c.total_cuts} total
-                </span>
-              : <span class="text-rust font-bold tracking-wide uppercase">NEVER WHOOPED</span>
-            }
-          </div>
-        </div>
-        <div class="border-t border-camo p-3 space-y-2">
-          <form method="POST" action="/api/cuts">
-            <input type="hidden" name="customer_id" value={c.id} />
-            <button
-              type="submit"
-              class="condensed w-full bg-screaming text-army font-black py-2 px-4 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
-            >
-              GRASSWHOOPED
-            </button>
-          </form>
-          {/* MANUAL PAYMENT LOGGING ONLY — cash/check/Venmo only. NO payment processor, NO credit cards */}
-          <form method="POST" action="/api/payments" class="flex gap-2">
-            <input type="hidden" name="customer_id" value={c.id} />
-            <div class="flex items-center bg-army border border-camo rounded overflow-hidden text-sm focus-within:border-rust transition-colors flex-1">
-              <span class="px-2 text-gray-500 select-none">$</span>
-              <input
-                type="number" name="amount" min="0" step="0.01" placeholder="0.00"
-                class="w-full bg-transparent py-1.5 pr-2 text-white focus:outline-none"
-              />
+  {customerGroups.length === 0 ? (
+    <p class="text-gray-500 italic text-sm">No recruits on the rolls yet. Enlist your first one above.</p>
+  ) : (
+    <div class="space-y-4">
+      {customerGroups.map((cg) => (
+        <div id={`customer-${cg.customer_id}`} class="bg-olive border border-camo rounded-lg overflow-hidden">
+
+          <!-- Customer Header -->
+          <div class="px-4 py-3 border-b border-camo bg-olive flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span class="condensed customer-name text-xl font-black text-deere tracking-wide">{cg.customer_name}</span>
+            {cg.phone && <span class="customer-phone text-sm text-gray-400">{cg.phone}</span>}
+            {cg.customer_notes && <span class="customer-notes text-xs text-gray-500 italic">{cg.customer_notes}</span>}
+            <div class="ml-auto flex gap-2 shrink-0">
+              <button
+                type="button"
+                class="condensed edit-customer-btn text-xs text-deere border border-camo rounded px-3 py-1.5 hover:border-deere transition-colors tracking-widest uppercase"
+                data-id={String(cg.customer_id)}
+                data-name={cg.customer_name}
+                data-phone={cg.phone ?? ''}
+                data-notes={cg.customer_notes ?? ''}
+              >
+                EDIT
+              </button>
+              <button
+                type="button"
+                class="condensed discharge-customer-btn text-xs text-gray-600 border border-camo/50 rounded px-3 py-1.5 hover:border-rust hover:text-rust transition-colors tracking-widest uppercase"
+                data-id={String(cg.customer_id)}
+                data-name={cg.customer_name}
+              >
+                DISCHARGE
+              </button>
             </div>
-            <button
-              type="submit"
-              class="condensed bg-rust text-white font-black py-1.5 px-4 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
-            >
-              RECORD PAYMENT
-            </button>
-          </form>
-          <div class="flex gap-2">
-            <button type="button"
-              class="condensed edit-btn flex-1 text-xs text-deere border border-camo rounded px-3 py-1.5 hover:border-deere transition-colors tracking-widest uppercase"
-              data-id={String(c.id)}
-              data-name={c.name}
-              data-address={c.address}
-              data-phone={c.phone ?? ''}
-              data-frequency={c.frequency}
-              data-quoted_price={c.quoted_price != null ? String(c.quoted_price) : ''}
-              data-notes={c.notes ?? ''}>
-              EDIT
-            </button>
-            <button type="button"
-              class="condensed discharge-btn text-xs text-gray-600 border border-camo/50 rounded px-3 py-1.5 hover:border-rust hover:text-rust transition-colors tracking-widest uppercase"
-              data-id={String(c.id)}
-              data-name={c.name}>
-              DISCHARGE
-            </button>
           </div>
+
+          <!-- Yards -->
+          {cg.yards.length === 0 ? (
+            <div class="px-4 py-3 text-gray-500 text-sm italic">No active yards.</div>
+          ) : (
+            <div>
+              {cg.yards.map((y) => (
+                <div id={`yard-${y.yard_id}`} class="border-b border-camo/40 last:border-0">
+
+                  <!-- Yard Info -->
+                  <div class="px-4 pt-3 pb-1 flex flex-wrap items-center gap-2">
+                    <span class="yard-label text-xs font-bold text-gray-300 uppercase tracking-widest">{y.label || 'Yard'}</span>
+                    <span class="yard-freq text-xs text-gray-500 border border-camo rounded px-2 py-0.5 uppercase tracking-wider">{y.frequency}</span>
+                    {y.quoted_price != null && (
+                      <span class="yard-quoted text-xs text-deere border border-deere/40 rounded px-2 py-0.5 tracking-wider">
+                        ${y.quoted_price.toFixed(2)}/cut
+                      </span>
+                    )}
+                  </div>
+                  <div class="px-4 pb-2">
+                    <div class="yard-address text-sm text-gray-400">{y.address}</div>
+                    <div class="text-xs mt-1">
+                      {y.last_cut ? (
+                        <span class="text-screaming">
+                          Last whooped: {y.last_cut}
+                          {y.last_price != null && <> &mdash; <span class="text-deere">${y.last_price.toFixed(2)}</span></>}
+                          {' '}&mdash; {y.total_cuts} total
+                        </span>
+                      ) : (
+                        <span class="text-rust font-bold tracking-wide uppercase">NEVER WHOOPED</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <!-- Yard Actions -->
+                  <div class="px-4 pb-3 flex flex-wrap gap-2">
+                    <form method="POST" action="/api/cuts" class="flex-1 min-w-[140px]">
+                      <input type="hidden" name="yard_id" value={y.yard_id} />
+                      <button
+                        type="submit"
+                        class="condensed w-full bg-screaming text-army font-black py-1.5 px-4 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
+                      >
+                        GRASSWHOOPED
+                      </button>
+                    </form>
+                    <button
+                      type="button"
+                      class="condensed edit-yard-btn text-xs text-deere border border-camo rounded px-3 py-1.5 hover:border-deere transition-colors tracking-widest uppercase"
+                      data-id={String(y.yard_id)}
+                      data-label={y.label ?? ''}
+                      data-address={y.address}
+                      data-frequency={y.frequency}
+                      data-quoted_price={y.quoted_price != null ? String(y.quoted_price) : ''}
+                    >
+                      EDIT YARD
+                    </button>
+                    <button
+                      type="button"
+                      class="condensed discharge-yard-btn text-xs text-gray-600 border border-camo/50 rounded px-3 py-1.5 hover:border-rust hover:text-rust transition-colors tracking-widest uppercase"
+                      data-id={String(y.yard_id)}
+                    >
+                      REMOVE
+                    </button>
+                  </div>
+
+                </div>
+              ))}
+            </div>
+          )}
+
+          <!-- Customer Footer: Payment + Add Yard -->
+          <div class="bg-army/30 border-t border-camo/50 px-4 py-3 space-y-2">
+
+            <!-- Record Payment -->
+            {/* MANUAL PAYMENT LOGGING ONLY — cash/check/Venmo only. NO payment processor, NO credit cards */}
+            <form method="POST" action="/api/payments" class="flex gap-2">
+              <input type="hidden" name="customer_id" value={cg.customer_id} />
+              <div class="flex items-center bg-army border border-camo rounded overflow-hidden text-sm focus-within:border-rust transition-colors flex-1">
+                <span class="px-2 text-gray-500 select-none">$</span>
+                <input
+                  type="number" name="amount" min="0" step="0.01" placeholder="0.00"
+                  class="w-full bg-transparent py-1.5 pr-2 text-white focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                class="condensed bg-rust text-white font-black py-1.5 px-4 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
+              >
+                RECORD PAYMENT
+              </button>
+            </form>
+
+            <!-- Add Yard -->
+            <details class="group">
+              <summary class="cursor-pointer list-none condensed text-xs text-gray-500 border border-camo/50 rounded px-3 py-1.5 hover:border-screaming hover:text-screaming transition-colors tracking-widest uppercase text-center select-none">
+                + ADD YARD
+              </summary>
+              <form method="POST" action="/api/yards" class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input type="hidden" name="customer_id" value={cg.customer_id} />
+                <div class="sm:col-span-2">
+                  <input
+                    type="text" name="address" placeholder="Address *" required
+                    class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text" name="label" placeholder="Label (e.g. Home, Rental)"
+                    class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+                  />
+                </div>
+                <div>
+                  <select
+                    name="frequency"
+                    class="w-full bg-army border border-camo rounded px-3 py-2 text-white focus:outline-none focus:border-deere text-sm"
+                  >
+                    <option value="weekly">Weekly</option>
+                    <option value="bi-weekly">Bi-Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="one-time">One-Time</option>
+                  </select>
+                </div>
+                <div>
+                  <div class="flex items-center bg-army border border-camo rounded overflow-hidden focus-within:border-deere transition-colors">
+                    <span class="px-2 text-gray-500 select-none text-sm">$</span>
+                    <input
+                      type="number" name="quoted_price" min="0" step="0.01" placeholder="0.00"
+                      class="w-full bg-transparent py-2 pr-3 text-white focus:outline-none text-sm"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <button
+                    type="submit"
+                    class="condensed w-full bg-deere text-army font-black py-2 px-4 rounded tracking-widest uppercase text-sm hover:opacity-90 transition-opacity"
+                  >
+                    ADD YARD
+                  </button>
+                </div>
+              </form>
+            </details>
+
+          </div>
+
         </div>
-      </div>
-    ))}
-  </div>
-)}
+      ))}
+    </div>
+  )}
 
 </section>
