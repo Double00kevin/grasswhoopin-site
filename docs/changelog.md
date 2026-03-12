@@ -2,6 +2,9 @@
 
 ## 2026-03-11
 
+### Phone Number Display Formatting
+- **UI:** Phone numbers now display as `XXX-XXX-XXXX` on the admin roster (`CustomerRoster.astro`). Raw value unchanged in `data-phone` — edit modal unaffected.
+
 ### Multi-Yard Support (customers/yards schema)
 - **Schema**: Separated billing contacts (customers) from properties (yards). `customers` table is now billing-only (name, phone, notes, active). New `yards` table holds address, label, frequency, quoted_price per property.
 - **Migration**: `migrations/001_customers_yards.sql` — applied to production D1 remote. Includes `customers_backup` (needs manual `DROP TABLE customers_backup;` after data verification).
