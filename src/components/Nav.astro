@@ -1,0 +1,77 @@
+---
+---
+
+<nav class="site-nav">
+  <a href="/" class="nav-brand">GRASSWHOOPIN'</a>
+  <div class="nav-right">
+    <span class="nav-tagline">Out whoopin' grass right now →</span>
+    <a href="sms:2569290532?body=Hey%20I%20need%20a%20grasswhoopin%21" class="nav-cta">
+      TEXT US!!
+    </a>
+  </div>
+</nav>
+
+<style>
+  .site-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.85rem 2rem;
+    background: rgba(26, 26, 24, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(74, 94, 58, 0.4);
+  }
+
+  .nav-brand {
+    font-family: 'Barlow Condensed', system-ui, sans-serif;
+    font-weight: 900;
+    font-size: 1.25rem;
+    color: #7fe832;
+    text-decoration: none;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .nav-tagline {
+    font-family: 'Barlow Condensed', system-ui, sans-serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1rem;
+    color: #d1d5db;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-cta {
+    font-family: 'Barlow Condensed', system-ui, sans-serif;
+    font-weight: 900;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #1a1a18;
+    background: #f2c200;
+    padding: 0.5rem 1.25rem;
+    transition: background 0.2s ease;
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .nav-cta:hover { background: #c9a000; }
+
+  @media (max-width: 767px) {
+    .site-nav { padding: 0.75rem 1.25rem; }
+    .nav-brand { font-size: 1rem; }
+    .nav-tagline { font-size: 0.85rem; }
+    .nav-cta { font-size: 0.9rem; padding: 0.45rem 1rem; }
+  }
+</style>

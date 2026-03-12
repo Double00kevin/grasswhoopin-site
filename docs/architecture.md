@@ -18,6 +18,26 @@ Browser
 
 ---
 
+## Public Site Components
+
+```
+src/components/Nav.astro   — fixed sticky nav: GRASSWHOOPIN' brand left | italic tagline + CTA grouped right
+src/components/Hero.astro  — full-viewport hero: word stack left, mascot right, GRASSWHOOPIN'? big line, empty bottom-cta row
+src/pages/index.astro      — public homepage: imports Nav + Hero
+```
+
+### Nav.astro
+Three elements in one flex row at all screen sizes:
+- Left: GRASSWHOOPIN' brand link (#7fe832, Barlow Condensed 900)
+- Right group (`.nav-right`): italic tagline "Out whoopin' grass right now →" + yellow CTA "TEXT US!!" → SMS link
+
+### Hero.astro
+- Mascot height: `3.52 × clamp(4rem, 8vw, 9rem)` — matches row height, no upward overflow past nav
+- `bottom-cta` section is present but empty (CTA moved to Nav)
+- `public/mascot.mp4` exists for future use; current display uses static `mascot.png`
+
+---
+
 ## Admin Dashboard Components
 
 ```

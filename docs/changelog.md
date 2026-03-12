@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-03-12
+
+### Public Site — Nav + Hero Updates
+
+**Nav (`src/components/Nav.astro`) — new component:**
+- Created sticky fixed nav with three elements: GRASSWHOOPIN' brand left, "Out whoopin' grass right now →" italic tagline + "TEXT US!!" CTA button grouped right
+- Tagline: italic Barlow Condensed, text-gray-300 (#d1d5db), no link
+- CTA: yellow (#f2c200) Barlow Condensed 900, links to SMS `256-929-0532`
+- All three elements visible at all screen sizes (no mobile hide)
+- Imported into `src/pages/index.astro`
+
+**Hero (`src/components/Hero.astro`) — updates:**
+- Reduced mascot height multiplier from `4.75` to `3.52` (matches row height) to prevent mascot from overflowing above the fixed nav bar
+- Added `mascot.mp4` to `public/` (moved from `dist/`) for future use — currently not displayed (static `mascot.png` in use)
+- Removed bottom-cta section content: "We'll handle it." tagline, "Best way to reach us?" tagline, and the TEXT US NOW button/aside (CTA moved to Nav)
+- Removed `gap` from `.bottom-cta` since section is now empty
+
+---
+
 ## 2026-03-11
 
 ### Clickable Address → Google Maps Directions

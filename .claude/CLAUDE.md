@@ -117,12 +117,18 @@ src/layouts/
   AdminLayout.astro       — DO NOT TOUCH: page shell, header, sticky nav
 
 src/components/
+  Nav.astro               — public site fixed sticky nav: GRASSWHOOPIN' brand left; "Out whoopin' grass right now →"
+                            italic tagline + "TEXT US!!" CTA button grouped right. All three visible at all sizes.
+  Hero.astro              — full-viewport hero section. Mascot height = 3.52× line-height (no nav overflow).
+                            bottom-cta section is empty — CTA lives in Nav.
+                            public/mascot.mp4 exists but static mascot.png is currently displayed.
   AdminStats.astro        — metric cards (totalCustomers, cutsMonth, revenueMonth, revenueAll, totalOwed)
   CustomerRoster.astro    — accepts customerGroups: CustomerGroup[]; renders nested customer+yard cards
                             Yard addresses are tappable links → Google Maps directions (maps/dir/?api=1&destination=)
                             Phone numbers display formatted as XXX-XXX-XXXX (raw stored value unchanged)
 
 src/pages/
+  index.astro             — public homepage: imports Nav + Hero
   admin.astro             — controller: auth, DB queries, TypeScript grouping, flash params, composition
                             Passes customerGroups to CustomerRoster (NOT customers[])
                             Contains two modals: #edit-customer-modal and #edit-yard-modal

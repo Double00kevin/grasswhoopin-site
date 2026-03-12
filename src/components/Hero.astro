@@ -29,14 +29,6 @@
 
     <!-- Row 3 — tagline + CTA, left-aligned below G -->
     <div class="bottom-cta">
-      <p class="tagline">We'll handle it.</p>
-      <p class="tagline" style="animation-delay: 420ms;">Best way to reach us?</p>
-      <div class="cta-row">
-        <a href="sms:2569290532?body=Hey%20I%20need%20a%20grasswhoopin%21" class="cta-btn">
-          TEXT US NOW <span class="arrow">→</span>
-        </a>
-        <span class="cta-aside">since we're probably out whoopin somebody's grass right now.....</span>
-      </div>
     </div>
 
   </div>
@@ -143,8 +135,8 @@
   .mascot-img {
     position: relative;
     z-index: 1;
-    /* 4.75 × line-height — bottom pins to NEED A, top overflows above DOES */
-    height: calc(4.75 * clamp(4rem, 8vw, 9rem));
+    /* 3.52 × line-height — bottom pins to NEED A, top aligns with DOES (no overflow above sticky nav) */
+    height: calc(3.52 * clamp(4rem, 8vw, 9rem));
     width: auto;
     max-width: 100%;
     display: block;
@@ -189,7 +181,6 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1.75rem;
     padding-top: 1.75rem;
   }
 
