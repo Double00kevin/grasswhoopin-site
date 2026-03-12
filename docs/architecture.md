@@ -38,6 +38,8 @@ Renders one customer block per customer with stacked yard cards inside.
 
 **Per-yard actions:** GRASSWHOOPED, EDIT YARD, REMOVE YARD
 
+**Yard address** renders as a tappable link (`<a>`) pointing to `https://www.google.com/maps/dir/?api=1&destination=<encoded address>`. Opens Google Maps in directions mode; launches Maps app on mobile.
+
 ### data-* Cross-Boundary Pattern
 Buttons in CustomerRoster.astro carry `data-*` attributes with IDs and field values.
 Event handlers (`querySelectorAll`) live in admin.astro's `<script>` block and read those attributes at click time.

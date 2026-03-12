@@ -119,6 +119,8 @@ src/layouts/
 src/components/
   AdminStats.astro        — metric cards (totalCustomers, cutsMonth, revenueMonth, revenueAll, totalOwed)
   CustomerRoster.astro    — accepts customerGroups: CustomerGroup[]; renders nested customer+yard cards
+                            Yard addresses are tappable links → Google Maps directions (maps/dir/?api=1&destination=)
+                            Phone numbers display formatted as XXX-XXX-XXXX (raw stored value unchanged)
 
 src/pages/
   admin.astro             — controller: auth, DB queries, TypeScript grouping, flash params, composition
@@ -204,6 +206,7 @@ Tokens defined with `@theme {}` syntax. Never use raw hex values in components �
 4. Do not rename files or folders unless instructed
 5. Explain or show the change before applying it
 6. Do not suggest Yarn, Bun, Netlify, Vercel, Prisma, or Supabase
+7. After completing any task that builds, changes, or removes functionality — automatically update CLAUDE.md, create or update the relevant docs/ file, and add a changelog.md entry. Do not wait to be asked.
 
 ---
 
