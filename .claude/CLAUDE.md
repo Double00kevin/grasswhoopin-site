@@ -1,262 +1,122 @@
-# GrassWhoopin Site — AI Context
-
-> This file is the single source of truth for AI assistants working on this project.
-> It works as Claude Code session context AND as a paste-in for any external AI conversation.
-> Last updated: 2026-03-11
-
----
+# GrassWhoopin' Site — AI Context
+> Last updated: 2026-03-12
 
 ## Project Identity
-
-Lawn-care operations dashboard and admin system. Private internal tool for one operator.
-
+Lawn-care CRM and admin dashboard. Single operator. Private internal tool.
 Brand voice: lawns are "whooped," customers are "recruits." Southern, loud, military-coded.
-
-Repo path: `~/projects/grasswhoopin-site`
+Repo: `~/projects/grasswhoopin-site`
 
 ---
 
-## Stack & Standards
-
+## Stack
 | | |
 |---|---|
-| Framework | Astro v5, `output: 'server'` (SSR default) |
-| Styling | Tailwind CSS v4 — `@import "tailwindcss"` in CSS files; config via `@tailwindcss/vite` in `astro.config.mjs` |
-| Deployment | Cloudflare Pages (auto-deploy on push to `main`) |
-| Database | Cloudflare D1, binding name: `grasswhoopin_db` |
-| Package manager | npm (never Yarn/Bun) |
-| Runtime | Cloudflare Workers (via `@astrojs/cloudflare` adapter) |
+| Framework | Astro v5, `output: 'server'` (SSR) |
+| Styling | Tailwind CSS v4 via `@tailwindcss/vite` — tokens in `src/styles/global.css` |
+| Deployment | Cloudflare Pages — auto-deploy on push to `main` |
+| Database | Cloudflare D1, binding: `grasswhoopin_db` |
+| Runtime | Cloudflare Workers via `@astrojs/cloudflare` adapter |
+| Package manager | npm only — never Yarn or Bun |
 
 ---
 
-## Common Commands
-
+## Commands
 ```sh
-npm run dev                   # dev server at http://localhost:4321
-npm run build                 # verify zero build errors before pushing
-npx wrangler pages deploy dist  # manual deploy (auto-deploy preferred)
+npm run dev        # localhost:4321
+npm run build      # must pass zero errors before any push
+git add -A && git commit -m "msg" && git push  # deploys to Cloudflare (~1-2 min)
 
-# Local DB setup (run once after clearing .wrangler/state/)
+# Local DB setup (run once)
 npx wrangler d1 execute grasswhoopin-db --local --file=schema.sql
 
-# Remote DB migration
+# Remote migration
 npx wrangler d1 execute grasswhoopin-db --remote --file=migrations/<file>.sql
 ```
 
-## Deployment Workflow
+---
 
-```sh
-npm run build           # must complete with zero errors
-git add <files>
-git commit -m "message"
-git push                # Cloudflare Pages auto-builds and deploys (~1-2 min)
-```
+## Database
+4 tables defined in `schema.sql`. See `docs/database.md` for full schema.
+
+- `customers` — billing/contact only (name, phone, notes, active)
+- `yards` — one per property, FK → customers.id (address, label, frequency, quoted_price, active)
+- `cuts` — per yard, FK → yards.id (cut_date, price, notes)
+- `payments` — per customer, FK → customers.id (amount, paid_date, notes)
+
+Migration `001_customers_yards.sql` applied 2026-03-11. `customers_backup` dropped from production.
+
+`seed.sql` is DEV ONLY and currently OUTDATED — do not run until updated.
+
+Runtime DB access:
+- `.astro` pages: `Astro.locals.runtime.env.grasswhoopin_db`
+- API routes: `locals.runtime.env.grasswhoopin_db`
 
 ---
 
-## Current DB Schema (4 tables — defined in `schema.sql`)
+## Architecture
+See `docs/architecture.md` for full component and route breakdown.
 
-### customers (billing/contact only)
-| Column | Type | Notes |
-|--------|------|-------|
-| id | INTEGER PK | autoincrement |
-| name | TEXT NOT NULL | |
-| phone | TEXT | nullable |
-| notes | TEXT | nullable |
-| active | INTEGER | 1 = active, 0 = discharged |
-| created_at | TEXT | datetime('now') |
+**Key files:**
+- `src/layouts/AdminLayout.astro` — DO NOT TOUCH
+- `src/components/CustomerRoster.astro` — accepts `CustomerGroup[]`, type defined in `src/pages/admin.astro`
+- `src/pages/admin.astro` — auth, DB queries, grouping logic, all JS event handlers
+- `src/pages/index.astro` — public homepage, imports Nav + Hero
 
-### yards (one per property, many per customer)
-| Column | Type | Notes |
-|--------|------|-------|
-| id | INTEGER PK | autoincrement |
-| customer_id | INTEGER NOT NULL | FK → customers.id |
-| label | TEXT | e.g. "Home", "Rental on Pulaski" — nullable |
-| address | TEXT NOT NULL | |
-| frequency | TEXT | weekly / bi-weekly / monthly / one-time |
-| quoted_price | REAL | nullable |
-| active | INTEGER | 1 = active, 0 = removed |
-| created_at | TEXT | datetime('now') |
+**API routes** (all require `gw_admin` cookie):
+- `POST /api/enlist` — create customer + first yard atomically
+- `PUT|DELETE|PATCH /api/customers` — edit / discharge / reinstate customer
+- `POST|PUT|DELETE|PATCH /api/yards` — add / edit / remove / reinstate yard
+- `POST /api/cuts` — log a cut by `yard_id`
+- `POST /api/payments` — manual payment only (cash/check/Venmo/Zelle — NO card processing, ever)
 
-### cuts (lawn cut log — per yard)
-| Column | Type | Notes |
-|--------|------|-------|
-| id | INTEGER PK | autoincrement |
-| yard_id | INTEGER NOT NULL | FK → yards.id |
-| cut_date | TEXT NOT NULL | date('now') default |
-| price | REAL | nullable |
-| notes | TEXT | nullable |
-| created_at | TEXT | datetime('now') |
-
-### payments (at customer level — covers all yards)
-| Column | Type | Notes |
-|--------|------|-------|
-| id | INTEGER PK | autoincrement |
-| customer_id | INTEGER NOT NULL | FK → customers.id |
-| amount | REAL NOT NULL | |
-| paid_date | TEXT NOT NULL | date('now') default |
-| notes | TEXT | nullable |
-| created_at | TEXT | datetime('now') |
-
-> **Migration note:** `migrations/001_customers_yards.sql` applied 2026-03-11. `customers_backup` has been dropped from production D1.
-
-### Cloudflare Runtime Access
-```ts
-// In .astro pages:
-const db = Astro.locals.runtime.env.grasswhoopin_db;
-// In API routes (.ts):
-const db = locals.runtime.env.grasswhoopin_db;
-```
+**Auth:** Google OAuth 2.0 PKCE — `/auth/login` → `/auth/callback` → `gw_admin` cookie (7-day)
 
 ---
 
-## Component Architecture
+## Color Tokens (`src/styles/global.css`)
+`army` #0F2C23 | `olive` #1E3F2F | `camo` #4b5320 | `deere` #FACC15 | `screaming` #4ADE80 | `rust` #F97316 | `dirt` #78350f
 
-```
-src/layouts/
-  AdminLayout.astro       — DO NOT TOUCH: page shell, header, sticky nav
-
-src/components/
-  Nav.astro               — public site fixed sticky nav: GRASSWHOOPIN' brand left; "Out whoopin' grass right now →"
-                            italic tagline + "TEXT US!!" CTA button grouped right. All three visible at all sizes.
-  Hero.astro              — full-viewport hero section. Mascot height = 3.52× line-height (no nav overflow).
-                            bottom-cta section is empty — CTA lives in Nav.
-                            public/mascot.mp4 exists but static mascot.png is currently displayed.
-  AdminStats.astro        — metric cards (totalCustomers, cutsMonth, revenueMonth, revenueAll, totalOwed)
-  CustomerRoster.astro    — accepts customerGroups: CustomerGroup[]; renders nested customer+yard cards
-                            Yard addresses are tappable links → Google Maps directions (maps/dir/?api=1&destination=)
-                            Phone numbers display formatted as XXX-XXX-XXXX (raw stored value unchanged)
-
-src/pages/
-  index.astro             — public homepage: imports Nav + Hero
-  admin.astro             — controller: auth, DB queries, TypeScript grouping, flash params, composition
-                            Passes customerGroups to CustomerRoster (NOT customers[])
-                            Contains two modals: #edit-customer-modal and #edit-yard-modal
-                            All JS event handlers (querySelectorAll) live here — not in components
-
-src/pages/api/
-  enlist.ts     — POST: create customer + first yard atomically → redirect /admin?added=1
-  customers.ts  — PUT: edit name/phone/notes | DELETE: discharge | PATCH: reinstate
-  yards.ts      — POST: add yard | PUT: edit | DELETE: discharge | PATCH: reinstate
-  cuts.ts       — POST: log a cut by yard_id → redirect /admin?whooped=1
-  payments.ts   — POST: record manual payment by customer_id (NO card processing ever)
-```
-
-### data-* Cross-Boundary Pattern
-Buttons rendered in CustomerRoster.astro carry `data-*` attributes with IDs and field values.
-Event handlers in admin.astro's `<script>` block read those attributes at click time via `querySelectorAll`.
-JS event logic never lives inside CustomerRoster.astro.
-
-### CustomerGroup Types
-```ts
-interface YardGroup {
-  yard_id: number; label: string | null; address: string;
-  frequency: string; quoted_price: number | null;
-  last_cut: string | null; last_price: number | null; total_cuts: number;
-}
-interface CustomerGroup {
-  customer_id: number; customer_name: string;
-  phone: string | null; customer_notes: string | null;
-  yards: YardGroup[];
-}
-```
-
-### Admin Query Pattern
-```sql
-SELECT
-  c.id as customer_id, c.name as customer_name, c.phone, c.notes as customer_notes,
-  y.id as yard_id, y.label, y.address, y.frequency, y.quoted_price,
-  MAX(cu.cut_date) as last_cut, COUNT(cu.id) as total_cuts,
-  (SELECT price FROM cuts WHERE yard_id = y.id ORDER BY cut_date DESC, id DESC LIMIT 1) as last_price
-FROM customers c
-LEFT JOIN yards y ON y.customer_id = c.id AND y.active = 1
-LEFT JOIN cuts cu ON cu.yard_id = y.id
-WHERE c.active = 1
-GROUP BY c.id, y.id
-ORDER BY c.name, y.id
-```
-Then group flat rows into `CustomerGroup[]` in TypeScript before passing to `CustomerRoster`.
+Never use raw hex in components — use tokens only.
 
 ---
 
-## Auth
-
-- Google OAuth 2.0 with PKCE — routes: `/auth/login` → `/auth/callback`
-- Session cookie: `gw_admin=authorized` — httpOnly, secure, sameSite strict, 7-day maxAge
-- All API routes check `cookies.get('gw_admin')?.value !== 'authorized'` before acting
-- Admin email allowlist enforced via env var
-
----
-
-## Color Palette (Tailwind tokens in `src/styles/global.css`)
-
-| Token | Value | Use |
-|-------|-------|-----|
-| `bg-army` / `text-army` | #0F2C23 | page background |
-| `bg-olive` / `text-olive` | #1E3F2F | panel/card background |
-| `border-camo` | #4b5320 | borders, accents |
-| `text-deere` / `bg-deere` | #FACC15 | headings, CTAs |
-| `text-screaming` / `bg-screaming` | #4ADE80 | success, green highlights |
-| `text-rust` / `bg-rust` | #F97316 | danger, payments |
-| `text-dirt` / `bg-dirt` | #78350f | brown accents |
-
-Tokens defined with `@theme {}` syntax. Never use raw hex values in components — use tokens.
+## Hard Rules
+- NEVER rewrite entire files unless explicitly instructed — smallest diff only
+- NEVER suggest Yarn, Bun, Netlify, Vercel, Prisma, or Supabase
+- NEVER modify schema, migrations, or auth without explicit instruction
+- NEVER run `seed.sql` with `--remote`
+- NEVER add card processing or payment APIs of any kind
+- `output: 'hybrid'` does not exist in Astro 5 — use `output: 'server'`
+- Tailwind v4 has no `tailwind.config.*` — config is in `astro.config.mjs`
+- Any page needing SSR requires `export const prerender = false`
+- Payments are manual logging only — no processor, no cards, ever
 
 ---
 
-## AI Editing Rules
+## Close The Loop
+When operator types "close the loop" — stop everything and execute this checklist in order.
+Do not skip any item. Do not ask for permission. Just do it.
 
-1. Do NOT rewrite entire files unless explicitly instructed
-2. Modify the smallest possible section of code
-3. Preserve formatting and existing structure
-4. Do not rename files or folders unless instructed
-5. Explain or show the change before applying it
-6. Do not suggest Yarn, Bun, Netlify, Vercel, Prisma, or Supabase
-7. After completing any task that builds, changes, or removes functionality — automatically update CLAUDE.md, create or update the relevant docs/ file, and add a changelog.md entry. Do not wait to be asked.
+**1. Update `.claude/CLAUDE.md`**
+- Reflect any stack, schema, route, or component changes made this session
+- Update the `Last updated` date at the top
 
----
+**2. Update `docs/database.md`**
+- If any table, column, or migration changed — update the schema tables
+- If a migration was applied — add it to the Migration History section
+- If any cleanup tasks are pending — list them explicitly
 
-## Database Safety
+**3. Update `docs/architecture.md`**
+- If any component, route, or API endpoint was added, removed, or changed — update it
+- If the data flow or component hierarchy changed — update it
 
-- Never modify schema, migrations, or auth logic without explicit instruction
-- `seed.sql` is DEV ONLY — only run with `--local` flag, NEVER `--remote`
-- `seed.sql` is currently outdated for the new schema — do not run until updated
-- `migrations/` contains production-applied migrations — do not re-run them
-- D1 has FK enforcement ON — use `PRAGMA foreign_keys = OFF;` in migration files when dropping referenced tables
+**4. Update `docs/changelog.md`**
+- Add a dated entry for everything shipped this session
+- Format: `## YYYY-MM-DD` then bullet points per change
+- Be specific — file names, what changed, why
 
----
-
-## Deployment Safety
-
-- Do not change `wrangler.jsonc`, Cloudflare bindings, or env vars without explicit instruction
-- Always run `npm run build` (zero errors) before pushing
-
----
-
-## Known Constraints
-
-- **`AdminLayout.astro`** — Do not touch. Stable outer shell.
-- **`output: 'hybrid'`** — Does not exist in Astro 5. Use `output: 'server'`. Static pages use `export const prerender = true`.
-- **Tailwind v4** — Config lives in `astro.config.mjs` via `@tailwindcss/vite`. No `tailwind.config.*` file.
-- **`@theme {}`** — Defines color tokens in `src/styles/global.css`. Not `extend.colors`.
-- **`src/env.d.ts`** — Declares `App.Locals extends Runtime<CloudflareEnv>` for D1/env typing.
-- **Payments** — Manual logging only (cash, check, Venmo, Zelle). No payment processor. No credit cards. Ever.
-
----
-
-## Session Protocol
-
-Before responding to any planning question, feature request, or "what's next" prompt — stop and ask:
-
-> "Is the previous task fully captured? (CLAUDE.md current, changelog.md updated, no loose threads)"
-
-Wait for confirmation before proceeding.
-
-At the end of every session, before anything else, run this closing checklist:
-
-- [ ] CLAUDE.md reflects current state
-- [ ] `docs/database.md`, `docs/architecture.md` updated if schema or routes changed
-- [ ] `docs/changelog.md` has an entry for anything shipped
-- [ ] No production tasks left undone (migrations, cleanup commands, etc.)
-
-If the answer to any checklist item is **no** — fix it before moving on. Do not skip this.
+**5. Report status**
+After completing all four — respond with:
+- What was updated and a one-line summary of each change
+- Any items that had nothing to update (and why)
+- Any loose threads or production tasks still pending
