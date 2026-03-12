@@ -2,6 +2,9 @@
 
 ## 2026-03-11
 
+### Clickable Address → Google Maps Directions
+- **UI:** Yard addresses in admin roster are now tappable links. Tapping opens Google Maps in directions mode to that address. Works on mobile (launches Maps app) and desktop.
+
 ### Phone Number Display Formatting
 - **UI:** Phone numbers now display as `XXX-XXX-XXXX` on the admin roster (`CustomerRoster.astro`). Raw value unchanged in `data-phone` — edit modal unaffected.
 

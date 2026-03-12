@@ -90,7 +90,12 @@ function formatPhone(phone: string): string {
                     )}
                   </div>
                   <div class="px-4 pb-2">
-                    <div class="yard-address text-sm text-gray-400">{y.address}</div>
+                    <a
+      href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(y.address)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="yard-address text-sm text-deere underline underline-offset-2 hover:text-screaming"
+    >{y.address}</a>
                     <div class="text-xs mt-1">
                       {y.last_cut ? (
                         <span class="text-screaming">
